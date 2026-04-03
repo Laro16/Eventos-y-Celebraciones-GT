@@ -322,7 +322,7 @@ function DulceriaApp() {
             )}
             <div className="truncate hidden sm:block">
               <div className="text-sm sm:text-lg font-semibold truncate">Eventos y Celebraciones GT</div>
-              <div className="text-xs text-gray-500 truncate">Todo para tu fiesta</div>
+              <div className="text-xs text-gray-500 truncate">De todo para tu fiesta</div>
             </div>
           </a>
 
