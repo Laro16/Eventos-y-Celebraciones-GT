@@ -1,7 +1,6 @@
 /* dulceria.jsx
    Actualizado:
-   - Las subcategorías ahora aparecen también cuando se selecciona la categoría "Todos".
-   - Se agregó un menú desplegable (select) para las subcategorías junto al de categorías.
+   - Se agregó el número de teléfono específico (50242454160) al enlace de WhatsApp.
 */
 
 const { useState, useMemo, useEffect, useRef } = React;
@@ -254,7 +253,6 @@ function DulceriaApp() {
   const subcategories = useMemo(() => {
     const set = new Set(['Todas']);
     products.forEach(p => {
-      // Si la categoría es "Todos" o si el producto pertenece a la categoría seleccionada
       if ((category === 'Todos' || (p.category || 'Sin categoría') === category) && p.subcategory && p.subcategory !== 'Todas') {
         set.add(p.subcategory);
       }
@@ -320,7 +318,8 @@ function DulceriaApp() {
   function openWhatsApp() {
     const text = generateWhatsAppMessage();
     if (!text) return alert('El carrito está vacío.');
-    window.open(`https://wa.me/?text=${text}`, '_blank');
+    // Número específico configurado con código de país de Guatemala
+    window.open(`https://wa.me/50242454160?text=${text}`, '_blank');
   }
 
   return (
@@ -396,12 +395,10 @@ function DulceriaApp() {
             </div>
             
             <div className="col-span-1 md:col-span-2 flex flex-wrap gap-2 items-center justify-end">
-              {/* Desplegable de Categorías */}
               <select value={category} onChange={e => handleCategoryChange(e.target.value)} className="border rounded px-3 py-2 text-sm max-w-full">
                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
 
-              {/* Nuevo: Desplegable de Subcategorías (Filtros) */}
               {subcategories.length > 1 && (
                 <select value={subcategory} onChange={e => setSubcategory(e.target.value)} className="border rounded px-3 py-2 text-sm max-w-full bg-pink-50 border-pink-200">
                   {subcategories.map(s => <option key={s} value={s}>{s}</option>)}
@@ -410,7 +407,6 @@ function DulceriaApp() {
             </div>
           </div>
           
-          {/* Fila adicional para Subcategorías como botones (Se mantiene para acceso rápido) */}
           {subcategories.length > 1 && (
             <div className="mt-3 pt-3 border-t flex items-center overflow-x-auto whitespace-nowrap scrollbar-hide gap-2">
                <span className="text-sm text-gray-500 font-medium mr-1">Filtros rápidos:</span>
