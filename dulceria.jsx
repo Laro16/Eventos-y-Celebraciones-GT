@@ -1,6 +1,7 @@
 /* dulceria.jsx
    Actualizado:
-   - Se implementó filtro de subcategorías dependiente de la categoría principal.
+   - Las subcategorías ahora aparecen también cuando se selecciona la categoría "Todos".
+   - Se agregó un menú desplegable (select) para las subcategorías junto al de categorías.
 */
 
 const { useState, useMemo, useEffect, useRef } = React;
@@ -141,14 +142,14 @@ function ImageWithModal({ src, alt, className = 'w-[72%] max-w-[220px] h-36 mx-a
   );
 }
 
-/* Normaliza producto - AHORA LEE LA SUBCATEGORIA */
+/* Normaliza producto */
 function normalizeProduct(raw, idFallback) {
   const name = (raw.name ?? raw.Nombre ?? raw.nombre ?? '').toString().trim();
   const price = parsePrice(raw.price ?? raw.Precio ?? raw.precio ?? raw.Price);
   const description = (raw.description ?? raw.Descripcion ?? raw.descripcion ?? raw.short ?? '').toString();
   const category = (raw.category ?? raw.Categoria ?? raw.categoria ?? 'Sin categoría').toString().trim();
   
-  // Nueva lectura para la subcategoría
+  // Lectura de la subcategoría
   let subcategory = (raw.subcategory ?? raw.Subcategoria ?? raw.subcategoria ?? '').toString().trim();
   if (!subcategory) subcategory = 'Todas';
 
@@ -178,7 +179,7 @@ function normalizeProduct(raw, idFallback) {
     short: description,
     description,
     category,
-    subcategory, // Se agrega la subcategoría al objeto
+    subcategory,
     image,
   };
 }
@@ -189,7 +190,7 @@ function DulceriaApp() {
   const [query, setQuery] = useState('');
   
   const [category, setCategory] = useState('Todos');
-  const [subcategory, setSubcategory] = useState('Todas'); // Nuevo estado para la subcategoría
+  const [subcategory, setSubcategory] = useState('Todas');
   
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(10000);
@@ -249,26 +250,24 @@ function DulceriaApp() {
     return Array.from(set);
   }, [products]);
 
-  // Extraer dinámicamente las subcategorías según la categoría seleccionada
+  // Extraer subcategorías de la categoría actual (o de todas si está en "Todos")
   const subcategories = useMemo(() => {
-    if (category === 'Todos') return []; // No mostrar subcategorías si estamos en "Todos"
     const set = new Set(['Todas']);
     products.forEach(p => {
-      if ((p.category || 'Sin categoría') === category && p.subcategory && p.subcategory !== 'Todas') {
+      // Si la categoría es "Todos" o si el producto pertenece a la categoría seleccionada
+      if ((category === 'Todos' || (p.category || 'Sin categoría') === category) && p.subcategory && p.subcategory !== 'Todas') {
         set.add(p.subcategory);
       }
     });
     return Array.from(set);
   }, [products, category]);
 
-  // Manejador central para cambiar la categoría (y reiniciar subcategoría)
   function handleCategoryChange(newCategory) {
     setCategory(newCategory);
-    setSubcategory('Todas'); // Reiniciar la subcategoría al cambiar de pestaña
+    setSubcategory('Todas'); // Reiniciar la subcategoría al cambiar de categoría principal
     triggerConfetti();
   }
 
-  // Se actualiza el filtro para incluir subcategoría
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return products
@@ -392,20 +391,29 @@ function DulceriaApp() {
       <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4" style={{ paddingTop: 8 }}>
         <section className="bg-white rounded-lg p-3 sm:p-4 shadow-sm mb-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="col-span-1 md:col-span-2 flex items-center gap-2">
+            <div className="col-span-1 md:col-span-1 flex items-center gap-2">
               <input aria-label="Buscar productos" value={query} onChange={e => setQuery(e.target.value)} className="w-full border rounded px-3 py-2 text-sm" placeholder="Buscar por nombre o categoría..." />
             </div>
-            <div className="flex gap-2 items-center justify-end">
-              <select value={category} onChange={e => handleCategoryChange(e.target.value)} className="border rounded px-3 py-2 text-sm">
+            
+            <div className="col-span-1 md:col-span-2 flex flex-wrap gap-2 items-center justify-end">
+              {/* Desplegable de Categorías */}
+              <select value={category} onChange={e => handleCategoryChange(e.target.value)} className="border rounded px-3 py-2 text-sm max-w-full">
                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
+
+              {/* Nuevo: Desplegable de Subcategorías (Filtros) */}
+              {subcategories.length > 1 && (
+                <select value={subcategory} onChange={e => setSubcategory(e.target.value)} className="border rounded px-3 py-2 text-sm max-w-full bg-pink-50 border-pink-200">
+                  {subcategories.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              )}
             </div>
           </div>
           
-          {/* Fila adicional para Subcategorías (Se muestra solo si la categoría tiene subcategorías) */}
+          {/* Fila adicional para Subcategorías como botones (Se mantiene para acceso rápido) */}
           {subcategories.length > 1 && (
             <div className="mt-3 pt-3 border-t flex items-center overflow-x-auto whitespace-nowrap scrollbar-hide gap-2">
-               <span className="text-sm text-gray-500 font-medium mr-1">Filtros:</span>
+               <span className="text-sm text-gray-500 font-medium mr-1">Filtros rápidos:</span>
                {subcategories.map(s => (
                  <button
                    key={s}
