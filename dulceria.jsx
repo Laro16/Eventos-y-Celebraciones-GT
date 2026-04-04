@@ -1,13 +1,10 @@
 /* dulceria.jsx
    Actualizado:
-   - Se implementó un Portal de React para el modal de la imagen. Esto soluciona 3 problemas:
-     1. El modal ahora siempre aparece por encima de todo el contenido (corrige el z-index).
-     2. La animación de apertura ahora es siempre visible y suave.
-     3. El modal ahora siempre se centra perfectamente en la pantalla.
+   - Se implementó filtro de subcategorías dependiente de la categoría principal.
 */
 
 const { useState, useMemo, useEffect, useRef } = React;
-const { createPortal } = ReactDOM; // Usaremos Portals
+const { createPortal } = ReactDOM;
 
 // Helper para el efecto de dulces
 function triggerConfetti() {
@@ -80,8 +77,7 @@ function FadeInOnScroll({ children, delay = 0 }) {
   );
 }
 
-
-// Componente Image + modal que ahora usa un Portal
+// Componente Image + modal
 function ImageWithModal({ src, alt, className = 'w-[72%] max-w-[220px] h-36 mx-auto', imgClass = 'object-contain' }) {
   const [open, setOpen] = useState(false);
   const [isShowing, setIsShowing] = useState(false);
@@ -105,7 +101,6 @@ function ImageWithModal({ src, alt, className = 'w-[72%] max-w-[220px] h-36 mx-a
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
 
-  // El JSX del Modal que será "teletransportado"
   const modalJsx = open && createPortal(
     <div
       role="dialog"
@@ -146,12 +141,17 @@ function ImageWithModal({ src, alt, className = 'w-[72%] max-w-[220px] h-36 mx-a
   );
 }
 
-/* Normaliza producto */
+/* Normaliza producto - AHORA LEE LA SUBCATEGORIA */
 function normalizeProduct(raw, idFallback) {
   const name = (raw.name ?? raw.Nombre ?? raw.nombre ?? '').toString().trim();
   const price = parsePrice(raw.price ?? raw.Precio ?? raw.precio ?? raw.Price);
   const description = (raw.description ?? raw.Descripcion ?? raw.descripcion ?? raw.short ?? '').toString();
-  const category = (raw.category ?? raw.Categoria ?? raw.categoria ?? 'Sin categoría').toString();
+  const category = (raw.category ?? raw.Categoria ?? raw.categoria ?? 'Sin categoría').toString().trim();
+  
+  // Nueva lectura para la subcategoría
+  let subcategory = (raw.subcategory ?? raw.Subcategoria ?? raw.subcategoria ?? '').toString().trim();
+  if (!subcategory) subcategory = 'Todas';
+
   let rawImage = (raw.image ?? raw.Imagen ?? raw.imagen ?? raw.Image ?? '').toString().trim();
 
   let image = rawImage;
@@ -178,6 +178,7 @@ function normalizeProduct(raw, idFallback) {
     short: description,
     description,
     category,
+    subcategory, // Se agrega la subcategoría al objeto
     image,
   };
 }
@@ -186,14 +187,16 @@ function normalizeProduct(raw, idFallback) {
 function DulceriaApp() {
   const [products, setProducts] = useState([]);
   const [query, setQuery] = useState('');
+  
   const [category, setCategory] = useState('Todos');
+  const [subcategory, setSubcategory] = useState('Todas'); // Nuevo estado para la subcategoría
+  
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(10000);
   const [visibleCount, setVisibleCount] = useState(12);
 
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
-
   const [quantities, setQuantities] = useState({});
 
   const [logoVisible, setLogoVisible] = useState(true);
@@ -246,13 +249,34 @@ function DulceriaApp() {
     return Array.from(set);
   }, [products]);
 
+  // Extraer dinámicamente las subcategorías según la categoría seleccionada
+  const subcategories = useMemo(() => {
+    if (category === 'Todos') return []; // No mostrar subcategorías si estamos en "Todos"
+    const set = new Set(['Todas']);
+    products.forEach(p => {
+      if ((p.category || 'Sin categoría') === category && p.subcategory && p.subcategory !== 'Todas') {
+        set.add(p.subcategory);
+      }
+    });
+    return Array.from(set);
+  }, [products, category]);
+
+  // Manejador central para cambiar la categoría (y reiniciar subcategoría)
+  function handleCategoryChange(newCategory) {
+    setCategory(newCategory);
+    setSubcategory('Todas'); // Reiniciar la subcategoría al cambiar de pestaña
+    triggerConfetti();
+  }
+
+  // Se actualiza el filtro para incluir subcategoría
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return products
       .filter(p => (category === 'Todos' ? true : (p.category ?? '') === category))
+      .filter(p => (subcategory === 'Todas' ? true : (p.subcategory ?? '') === subcategory))
       .filter(p => (p.price ?? 0) >= Number(minPrice) && (p.price ?? 0) <= Number(maxPrice))
-      .filter(p => ((p.name ?? '') + ' ' + (p.category ?? '')).toLowerCase().includes(q));
-  }, [products, category, query, minPrice, maxPrice]);
+      .filter(p => ((p.name ?? '') + ' ' + (p.category ?? '') + ' ' + (p.subcategory ?? '')).toLowerCase().includes(q));
+  }, [products, category, subcategory, query, minPrice, maxPrice]);
 
   const visibleProducts = filtered.slice(0, visibleCount);
 
@@ -329,7 +353,7 @@ function DulceriaApp() {
           <nav className="flex-grow min-w-0 md:hidden">
             <div className="flex items-center overflow-x-auto whitespace-nowrap scrollbar-hide">
               {categories.map(c => (
-                <button key={c} className={`px-3 py-2 rounded text-sm flex-shrink-0 ${category === c ? 'bg-pink-100 text-pink-700' : 'hover:bg-gray-100'}`} onClick={() => { setCategory(c); triggerConfetti(); }}>
+                <button key={c} className={`px-3 py-2 rounded text-sm flex-shrink-0 ${category === c ? 'bg-pink-100 text-pink-700' : 'hover:bg-gray-100'}`} onClick={() => handleCategoryChange(c)}>
                   {c}
                 </button>
               ))}
@@ -339,7 +363,7 @@ function DulceriaApp() {
           <div className="flex items-center gap-3 flex-shrink-0">
             <nav className="hidden md:flex gap-3 items-center mr-2">
               {categories.map(c => (
-                <button key={c} className={`px-3 py-2 rounded ${category === c ? 'bg-pink-100 text-pink-700' : 'hover:bg-gray-100'}`} onClick={() => { setCategory(c); triggerConfetti(); }}>
+                <button key={c} className={`px-3 py-2 rounded ${category === c ? 'bg-pink-100 text-pink-700' : 'hover:bg-gray-100'}`} onClick={() => handleCategoryChange(c)}>
                   {c}
                 </button>
               ))}
@@ -372,12 +396,29 @@ function DulceriaApp() {
               <input aria-label="Buscar productos" value={query} onChange={e => setQuery(e.target.value)} className="w-full border rounded px-3 py-2 text-sm" placeholder="Buscar por nombre o categoría..." />
             </div>
             <div className="flex gap-2 items-center justify-end">
-              <select value={category} onChange={e => setCategory(e.target.value)} className="border rounded px-3 py-2 text-sm">
+              <select value={category} onChange={e => handleCategoryChange(e.target.value)} className="border rounded px-3 py-2 text-sm">
                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
           </div>
+          
+          {/* Fila adicional para Subcategorías (Se muestra solo si la categoría tiene subcategorías) */}
+          {subcategories.length > 1 && (
+            <div className="mt-3 pt-3 border-t flex items-center overflow-x-auto whitespace-nowrap scrollbar-hide gap-2">
+               <span className="text-sm text-gray-500 font-medium mr-1">Filtros:</span>
+               {subcategories.map(s => (
+                 <button
+                   key={s}
+                   className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium border transition-colors ${subcategory === s ? 'bg-pink-100 border-pink-300 text-pink-700' : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'}`}
+                   onClick={() => setSubcategory(s)}
+                 >
+                   {s}
+                 </button>
+               ))}
+            </div>
+          )}
         </section>
+
         <section>
           <h2 className="text-lg font-semibold mb-3">Productos ({filtered.length})</h2>
           {visibleProducts.length === 0 ? (
