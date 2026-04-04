@@ -1,9 +1,8 @@
 /* dulceria.jsx
    Actualizado:
-   - Carrito persistente (localStorage).
-   - Formulario de datos (Nombre, Dirección, Fecha) integrado al pedido.
-   - Botón flotante de WhatsApp para consultas.
-   - Enlaces de redes sociales actualizados.
+   - Botón flotante ahora dice "Contáctanos".
+   - Íconos de pie de página siempre con color de marca.
+   - Ícono de TikTok corregido y mejorado.
 */
 
 const { useState, useMemo, useEffect, useRef } = React;
@@ -181,7 +180,6 @@ function DulceriaApp() {
   const [cartOpen, setCartOpen] = useState(false);
   const [quantities, setQuantities] = useState({});
   const [logoVisible, setLogoVisible] = useState(true);
-  const [cartImgVisible, setCartImgVisible] = useState(true);
 
   // Guardar carrito automáticamente
   useEffect(() => {
@@ -252,14 +250,15 @@ function DulceriaApp() {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800">
-      {/* Botón Flotante */}
+      {/* Botón Flotante Actualizado con Texto */}
       <a
         href="https://wa.me/50242454160?text=Hola,%20tengo%20una%20consulta%20sobre%20sus%20servicios%20para%20eventos."
         target="_blank"
-        className="fixed bottom-6 right-6 z-[60] bg-green-500 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center justify-center"
+        className="fixed bottom-6 right-6 z-[60] bg-green-500 text-white px-5 py-3 rounded-full shadow-2xl hover:scale-105 transition-transform flex items-center justify-center gap-2"
         aria-label="Contactar por WhatsApp"
       >
-        <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.417-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.599-3.835c1.522.902 3.222 1.387 4.953 1.388 5.417 0 9.825-4.407 9.827-9.823.001-2.624-1.022-5.091-2.882-6.951-1.859-1.86-4.322-2.883-6.941-2.883-5.418 0-9.825 4.408-9.827 9.825-.001 1.761.463 3.479 1.341 4.974l-1.003 3.665 3.754-.984zm11.103-7.514c-.301-.15-1.785-.881-2.062-.981-.278-.1-.48-.15-.682.15s-.782.981-.958 1.182c-.177.201-.354.226-.654.076-.301-.15-1.272-.469-2.422-1.494-.894-.797-1.498-1.782-1.674-2.083-.177-.301-.019-.464.132-.613.135-.134.301-.351.451-.527.151-.176.201-.301.302-.502.101-.201.05-.376-.025-.526-.075-.15-.682-1.642-.934-2.246-.246-.589-.516-.51-.682-.518-.174-.008-.374-.01-.573-.01-.2 0-.525.075-.801.376s-1.052 1.029-1.052 2.508 1.077 2.91 1.228 3.111c.151.201 2.12 3.238 5.136 4.538.718.309 1.278.494 1.714.633.721.221 1.376.19 1.894.113.578-.085 1.785-.73 2.037-1.432.252-.702.252-1.305.176-1.432-.075-.127-.278-.202-.579-.353z"/></svg>
+        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.417-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.599-3.835c1.522.902 3.222 1.387 4.953 1.388 5.417 0 9.825-4.407 9.827-9.823.001-2.624-1.022-5.091-2.882-6.951-1.859-1.86-4.322-2.883-6.941-2.883-5.418 0-9.825 4.408-9.827 9.825-.001 1.761.463 3.479 1.341 4.974l-1.003 3.665 3.754-.984zm11.103-7.514c-.301-.15-1.785-.881-2.062-.981-.278-.1-.48-.15-.682.15s-.782.981-.958 1.182c-.177.201-.354.226-.654.076-.301-.15-1.272-.469-2.422-1.494-.894-.797-1.498-1.782-1.674-2.083-.177-.301-.019-.464.132-.613.135-.134.301-.351.451-.527.151-.176.201-.301.302-.502.101-.201.05-.376-.025-.526-.075-.15-.682-1.642-.934-2.246-.246-.589-.516-.51-.682-.518-.174-.008-.374-.01-.573-.01-.2 0-.525.075-.801.376s-1.052 1.029-1.052 2.508 1.077 2.91 1.228 3.111c.151.201 2.12 3.238 5.136 4.538.718.309 1.278.494 1.714.633.721.221 1.376.19 1.894.113.578-.085 1.785-.73 2.037-1.432.252-.702.252-1.305.176-1.432-.075-.127-.278-.202-.579-.353z"/></svg>
+        <span className="font-bold text-sm">Contáctanos</span>
       </a>
 
       <header className="bg-white shadow sticky top-0 z-50">
@@ -375,14 +374,17 @@ function DulceriaApp() {
 
       <footer className="mt-12 py-10 bg-white border-t text-center">
         <div className="flex justify-center gap-8 mb-6">
-          <a href="https://www.facebook.com/profile.php?id=61577446754797" target="_blank" className="text-gray-400 hover:text-blue-600 transition">
-            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          {/* Facebook - Siempre Azul */}
+          <a href="https://www.facebook.com/profile.php?id=61577446754797" target="_blank" className="text-blue-600 hover:scale-110 transition-transform">
+            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
           </a>
-          <a href="https://www.instagram.com/eventosycelebracionesgt/" target="_blank" className="text-gray-400 hover:text-pink-500 transition">
-            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.85s.012-3.584.07-4.85c.149-3.227 1.664-4.771 4.919-4.919C8.416 2.175 8.796 2.163 12 2.163zm0 1.802c-3.116 0-3.483.011-4.712.068-2.736.126-3.901 1.288-4.028 4.028-.058 1.229-.068 1.598-.068 4.712s.011 3.483.068 4.712c.126 2.736 1.288 3.901 4.028 4.028 1.229.058 1.598.068 4.712.068s3.483-.011 4.712-.068c2.736-.126 3.901-1.288 4.028-4.028.058-1.229.068-1.598.068-4.712s-.011-3.483-.068-4.712c-.126-2.736-1.288-3.901-4.028-4.028C15.483 3.975 15.116 3.965 12 3.965zM12 8.428a3.572 3.572 0 100 7.144 3.572 3.572 0 000-7.144zm0 5.344a1.772 1.772 0 110-3.544 1.772 1.772 0 010 3.544zM16.949 6.329a1.2 1.2 0 100 2.4 1.2 1.2 0 000-2.4z"/></svg>
+          {/* Instagram - Siempre Rosa/Morado */}
+          <a href="https://www.instagram.com/eventosycelebracionesgt/" target="_blank" className="text-pink-600 hover:scale-110 transition-transform">
+            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.85s.012-3.584.07-4.85c.149-3.227 1.664-4.771 4.919-4.919C8.416 2.175 8.796 2.163 12 2.163zm0 1.802c-3.116 0-3.483.011-4.712.068-2.736.126-3.901 1.288-4.028 4.028-.058 1.229-.068 1.598-.068 4.712s.011 3.483.068 4.712c.126 2.736 1.288 3.901 4.028 4.028 1.229.058 1.598.068 4.712.068s3.483-.011 4.712-.068c2.736-.126 3.901-1.288 4.028-4.028.058-1.229.068-1.598.068-4.712s-.011-3.483-.068-4.712c-.126-2.736-1.288-3.901-4.028-4.028C15.483 3.975 15.116 3.965 12 3.965zM12 8.428a3.572 3.572 0 100 7.144 3.572 3.572 0 000-7.144zm0 5.344a1.772 1.772 0 110-3.544 1.772 1.772 0 010 3.544zM16.949 6.329a1.2 1.2 0 100 2.4 1.2 1.2 0 000-2.4z"/></svg>
           </a>
-          <a href="https://www.tiktok.com/@eventosycelebraci" target="_blank" className="text-gray-400 hover:text-black transition">
-            <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-2.43.05-4.86-.95-6.69-2.81-1.77-1.77-2.69-4.16-2.63-6.56.04-2.24 1.04-4.18 2.47-5.68 1.4-1.48 3.2-2.43 5.1-2.55.04-1.38.01-2.77.01-4.15z"/></svg>
+          {/* TikTok - Nuevo Ícono y Color */}
+          <a href="https://www.tiktok.com/@eventosycelebraci" target="_blank" className="text-black hover:scale-110 transition-transform">
+            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 448 512"><path d="M448 209.91a210.06 210.06 0 0 1-122.77-39.25V349.38A162.55 162.55 0 1 1 185 188.31V278.2a74.62 74.62 0 1 0 52.23 71.18V0l88 0a121.18 121.18 0 0 0 1.86 22.17A122.18 122.18 0 0 0 381 102.39a121.4 121.4 0 0 0 67 20.14z"/></svg>
           </a>
         </div>
         <div className="text-gray-400 text-sm">© {new Date().getFullYear()} Eventos y Celebraciones GT — Con amor para tu fiesta</div>
