@@ -1,9 +1,8 @@
 /* dulceria.jsx
    Actualizado:
-   - Menú de categorías deslizable (Swipe) estilo App móvil.
-   - Sistema de "Estado" (Agotado / Bajo Pedido) leyendo la columna 'estado' del Excel.
-   - Efecto Zoom (object-cover) en las miniaturas de los productos.
-   - Navegación nativa con botón "Atrás" y botón de WhatsApp original.
+   - Imágenes con efecto Zoom (object-cover) llenando el 100% del ancho de la tarjeta.
+   - Vista completa sin recortes al abrir la galería (modal).
+   - Fondo general "Blanco Hueso" y Botón WhatsApp original.
 */
 
 const { useState, useMemo, useEffect, useRef } = React;
@@ -166,6 +165,14 @@ function ImageWithModal({ src, images, alt, className = 'w-full h-48', imgClass 
   const modalJsx = open && createPortal(
     <div role="dialog" aria-modal="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4 transition-opacity duration-300 ease-out ${isShowing ? 'opacity-100' : 'opacity-0'}`} onClick={closeModal}>
       
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes subtleFade {
+          0% { opacity: 0.2; transform: scale(0.98); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+        .anim-fade { animation: subtleFade 0.35s ease-out forwards; }
+      `}} />
+
       <div className={`transform transition-all duration-300 ease-out flex flex-col items-center justify-center w-full h-full ${isShowing ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`} onClick={(e) => e.stopPropagation()}>
         
         <div 
@@ -193,6 +200,7 @@ function ImageWithModal({ src, images, alt, className = 'w-full h-48', imgClass 
             </>
           )}
           
+          {/* Aquí forzamos object-contain para que en grande sí se vea completa */}
           <img 
             key={currentIndex} 
             src={currentImg} 
@@ -225,13 +233,12 @@ function ImageWithModal({ src, images, alt, className = 'w-full h-48', imgClass 
   );
 }
 
-/* Normaliza producto - AQUÍ LEEMOS LA COLUMNA "ESTADO" */
+/* Normaliza producto */
 function normalizeProduct(raw, idFallback) {
   const name = (raw.name ?? raw.Nombre ?? raw.nombre ?? '').toString().trim();
   const price = parsePrice(raw.price ?? raw.Precio ?? raw.precio ?? raw.Price);
   const description = (raw.description ?? raw.Descripcion ?? raw.descripcion ?? raw.short ?? '').toString();
   const category = (raw.category ?? raw.Categoria ?? raw.categoria ?? 'Sin categoría').toString().trim();
-  const estado = (raw.estado ?? raw.Estado ?? '').toString().trim(); // LECTURA DE COLUMNA ESTADO
 
   let rawImage = (raw.image ?? raw.Imagen ?? raw.imagen ?? raw.Image ?? '').toString().trim();
 
@@ -250,7 +257,7 @@ function normalizeProduct(raw, idFallback) {
     });
   }
 
-  return { id: raw.id ?? idFallback, name, price, short: description, description, category, estado, image: imageList[0], images: imageList };
+  return { id: raw.id ?? idFallback, name, price, short: description, description, category, image: imageList[0], images: imageList };
 }
 
 /* App principal */
@@ -396,17 +403,6 @@ function DulceriaApp() {
   return (
     <div className="min-h-screen text-gray-800" style={{ backgroundColor: '#F9F8F6' }}>
       
-      {/* Estilos para animaciones y ocultar barra de scroll en el menú móvil */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes subtleFade {
-          0% { opacity: 0.2; transform: scale(0.98); }
-          100% { opacity: 1; transform: scale(1); }
-        }
-        .anim-fade { animation: subtleFade 0.35s ease-out forwards; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-      `}} />
-
       {/* Botón Flotante con diseño original WhatsApp */}
       <a
         href="https://wa.me/50242454160?text=Hola,%20tengo%20una%20consulta%20sobre%20sus%20servicios%20para%20eventos."
@@ -416,12 +412,12 @@ function DulceriaApp() {
         aria-label="Contactar por WhatsApp"
       >
         <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12.031 0C5.385 0 0 5.384 0 12.031c0 2.128.552 4.195 1.6 6.015L.231 24l6.096-1.599a11.957 11.957 0 005.704 1.442h.005c6.645 0 12.028-5.385 12.028-12.032C24.064 5.387 18.679 0 12.031 0zm0 21.849h-.003c-1.802 0-3.568-.484-5.116-1.401l-.367-.217-3.803.997.997-3.71-.238-.379A10.016 10.016 0 012.006 12.03c0-5.529 4.5-10.026 10.027-10.026 5.527 0 10.025 4.5 10.025 10.027 0 5.53-4.5 10.018-10.027 10.018zm5.503-7.518c-.301-.151-1.785-.881-2.062-.981-.278-.1-.481-.151-.682.151-.202.302-.782.981-.958 1.182-.176.202-.353.226-.654.076-.301-.151-1.272-.469-2.422-1.494-.894-.797-1.498-1.782-1.674-2.083-.177-.302-.02-.464.134-.614.134-.134.301-.351.451-.527.151-.176.202-.302.302-.502.101-.202.05-.376-.025-.526-.075-.151-.682-1.642-.934-2.246-.246-.589-.516-.51-.682-.518-.174-.008-.374-.01-.573-.01-.2 0-.525.075-.801.376s-1.052 1.029-1.052 2.508 1.077 2.91 1.228 3.111c.151.202 2.12 3.238 5.136 4.538.718.309 1.278.494 1.714.633.721.221 1.376.19 1.894.113.578-.085 1.785-.73 2.037-1.432.252-.702.252-1.305.176-1.432-.075-.127-.278-.202-.579-.353z"/>
+          <path d="M12.031 0C5.385 0 0 5.384 0 12.031c0 2.128.552 4.195 1.6 6.015L.231 24l6.096-1.599a11.957 11.957 0 005.704 1.442h.005c6.645 0 12.028-5.385 12.028-12.032C24.064 5.387 18.679 0 12.031 0zm0 21.849h-.003c-1.802 0-3.568-.484-5.116-1.401l-.367-.217-3.803.997.997-3.71-.238-.379A10.016 10.016 0 012.006 12.03c0-5.529 4.5-10.026 10.027-10.026 5.527 0 10.025 4.5 10.025 10.027 0 5.53-4.5 10.018-10.027 10.018zm5.503-7.518c-.301-.151-1.785-.881-2.062-.981-.278-.1-.481-.151-.682.151-.202.302-.782.981-.958 1.182-.176.202-.353.226-.654.076-.301-.151-1.272-.469-2.422-1.494-.894-.797-1.498-1.782-1.674-2.083-.177-.302-.02-.464.132-.614.134-.134.301-.351.451-.527.151-.176.202-.302.302-.502.101-.202.05-.376-.025-.526-.075-.151-.682-1.642-.934-2.246-.246-.589-.516-.51-.682-.518-.174-.008-.374-.01-.573-.01-.2 0-.525.075-.801.376s-1.052 1.029-1.052 2.508 1.077 2.91 1.228 3.111c.151.202 2.12 3.238 5.136 4.538.718.309 1.278.494 1.714.633.721.221 1.376.19 1.894.113.578-.085 1.785-.73 2.037-1.432.252-.702.252-1.305.176-1.432-.075-.127-.278-.202-.579-.353z"/>
         </svg>
         <span className="font-bold text-xs sm:text-sm">Contáctanos</span>
       </a>
 
-      {/* Header Fijo */}
+      {/* Header fijo */}
       <header className="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
           <a href="./" className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0 no-underline text-current">
@@ -435,7 +431,24 @@ function DulceriaApp() {
             </div>
           </a>
 
+          <nav className="flex-grow min-w-0 md:hidden">
+            <div className="flex items-center overflow-x-auto whitespace-nowrap scrollbar-hide">
+              {categories.map(c => (
+                <button key={c} className={`px-3 py-2 rounded text-sm flex-shrink-0 ${category === c ? 'bg-pink-100 text-pink-700' : 'hover:bg-gray-100'}`} onClick={() => handleCategoryChange(c)}>
+                  {c}
+                </button>
+              ))}
+            </div>
+          </nav>
+
           <div className="flex items-center gap-3 flex-shrink-0">
+            <nav className="hidden md:flex gap-3 items-center mr-2">
+              {categories.map(c => (
+                <button key={c} className={`px-3 py-2 rounded ${category === c ? 'bg-pink-100 text-pink-700' : 'hover:bg-gray-100'}`} onClick={() => handleCategoryChange(c)}>
+                  {c}
+                </button>
+              ))}
+            </nav>
             <button onClick={openCart} className="relative p-2 rounded-md bg-white hover:bg-gray-50 border border-gray-100 shadow-sm" aria-label="Abrir carrito">
               <img src="./src/carrito.png" alt="Carrito" onLoad={() => setCartImgVisible(true)} onError={(e) => { setCartImgVisible(false); e.target.style.display = 'none'; }} className="h-6 w-6 object-contain" style={{ display: cartImgVisible ? 'block' : 'none' }} />
               {!cartImgVisible && (
@@ -452,26 +465,16 @@ function DulceriaApp() {
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4" style={{ paddingTop: 8 }}>
         
-        {/* Sección de Buscador y Menú Deslizable (Píldoras) */}
         <section className="bg-white rounded-lg p-3 sm:p-4 shadow-sm mb-4 border border-gray-100">
-          <div className="mb-3">
-            <input aria-label="Buscar productos" value={query} onChange={e => setQuery(e.target.value)} className="w-full border border-gray-200 rounded-md px-3 py-2.5 text-sm focus:border-pink-400 focus:ring-1 focus:ring-pink-100 outline-none transition-shadow" placeholder="🔍 Buscar por nombre o categoría..." />
-          </div>
-          
-          <div className="flex items-center overflow-x-auto whitespace-nowrap scrollbar-hide pb-1 gap-2">
-            {categories.map(c => (
-              <button 
-                key={c} 
-                onClick={() => handleCategoryChange(c)} 
-                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors border flex-shrink-0 ${
-                  category === c 
-                    ? 'bg-pink-500 text-white border-pink-500 shadow-sm' 
-                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                }`}
-              >
-                {c}
-              </button>
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="flex items-center gap-2">
+              <input aria-label="Buscar productos" value={query} onChange={e => setQuery(e.target.value)} className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:border-pink-300 focus:outline-none" placeholder="Buscar por nombre o categoría..." />
+            </div>
+            <div className="flex flex-wrap gap-2 items-center justify-end">
+              <select value={category} onChange={e => handleCategoryChange(e.target.value)} className="border border-gray-200 rounded px-3 py-2 text-sm w-full md:w-auto focus:outline-none">
+                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
           </div>
         </section>
 
@@ -481,72 +484,48 @@ function DulceriaApp() {
             <div className="bg-white rounded-lg p-6 text-center shadow-sm border border-gray-100">No se encontraron productos.</div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {visibleProducts.map((p, index) => {
-                
-                // Validar Estados
-                const isAgotado = p.estado && p.estado.toLowerCase() === 'agotado';
-                const isBajoPedido = p.estado && p.estado.toLowerCase() === 'bajo pedido';
-
-                return (
-                  <FadeInOnScroll key={p.id} delay={index * 50}>
-                    <article className="bg-white rounded shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col h-full border border-gray-100 relative">
+              {visibleProducts.map((p, index) => (
+                <FadeInOnScroll key={p.id} delay={index * 50}>
+                  <article className="bg-white rounded shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col h-full border border-gray-100">
+                    
+                    {/* Tarjeta de imagen al 100% de ancho y con zoom (cover) */}
+                    <ImageWithModal 
+                      src={p.image || `./src/${slugify(p.name)}.jpg`} 
+                      images={p.images} 
+                      alt={p.name} 
+                      className="w-full h-44 sm:h-48" 
+                      imgClass="object-cover w-full h-full" 
+                    />
+                    
+                    <div className="p-3 flex-1 flex flex-col">
+                      <h3 className="font-semibold text-sm sm:text-base truncate text-gray-800">{p.name}</h3>
+                      <p className="text-xs sm:text-sm text-gray-500 flex-1">{p.short || p.description}</p>
                       
-                      {/* Etiquetas de estado visuales */}
-                      {isAgotado && (
-                        <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] uppercase font-bold px-2 py-1 rounded shadow-sm z-10 tracking-wider">Agotado</span>
-                      )}
-                      {isBajoPedido && (
-                        <span className="absolute top-2 right-2 bg-orange-500 text-white text-[10px] uppercase font-bold px-2 py-1 rounded shadow-sm z-10 tracking-wider">Bajo Pedido</span>
-                      )}
-
-                      {/* Imagen atenuada si está agotado */}
-                      <div className={isAgotado ? 'opacity-50 grayscale' : ''}>
-                        <ImageWithModal 
-                          src={p.image || `./src/${slugify(p.name)}.jpg`} 
-                          images={p.images} 
-                          alt={p.name} 
-                          className="w-full h-44 sm:h-48" 
-                          imgClass="object-cover w-full h-full" 
-                        />
-                      </div>
-                      
-                      <div className="p-3 flex-1 flex flex-col">
-                        <h3 className={`font-semibold text-sm sm:text-base truncate ${isAgotado ? 'text-gray-400' : 'text-gray-800'}`}>{p.name}</h3>
-                        <p className="text-xs sm:text-sm text-gray-500 flex-1">{p.short || p.description}</p>
+                      <div className="mt-auto pt-3">
+                        <div className="text-base sm:text-lg font-bold text-gray-900">{moneyFmt.format(p.price || 0)}</div>
                         
-                        <div className="mt-auto pt-3">
-                          <div className={`text-base sm:text-lg font-bold ${isAgotado ? 'text-gray-400' : 'text-gray-900'}`}>{moneyFmt.format(p.price || 0)}</div>
+                        <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
+                          <div className="flex items-center border border-gray-200 rounded-md bg-white">
+                            <button onClick={() => decrementQuantity(p.id)} className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 text-xl leading-none rounded-l-md">-</button>
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              value={quantities[p.id] || 1}
+                              onChange={(e) => handleQuantityChange(p.id, e.target.value)}
+                              className="w-8 text-center text-sm font-medium bg-transparent outline-none border-x border-gray-200"
+                            />
+                            <button onClick={() => incrementQuantity(p.id)} className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 text-xl leading-none rounded-r-md">+</button>
+                          </div>
                           
-                          {/* Botón condicional según el estado */}
-                          {isAgotado ? (
-                            <div className="mt-2 w-full px-2 py-1.5 bg-gray-100 text-gray-400 rounded-md text-xs sm:text-sm font-medium text-center border border-gray-200 cursor-not-allowed select-none">
-                              No disponible
-                            </div>
-                          ) : (
-                            <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
-                              <div className="flex items-center border border-gray-200 rounded-md bg-white">
-                                <button onClick={() => decrementQuantity(p.id)} className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 text-xl leading-none rounded-l-md">-</button>
-                                <input
-                                  type="text"
-                                  inputMode="numeric"
-                                  value={quantities[p.id] || 1}
-                                  onChange={(e) => handleQuantityChange(p.id, e.target.value)}
-                                  className="w-8 text-center text-sm font-medium bg-transparent outline-none border-x border-gray-200"
-                                />
-                                <button onClick={() => incrementQuantity(p.id)} className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 text-xl leading-none rounded-r-md">+</button>
-                              </div>
-                              
-                              <button onClick={() => { addToCart(p, quantities[p.id] || 1); triggerConfetti(); }} className="flex-1 min-w-[80px] px-2 py-1.5 bg-pink-500 text-white rounded-md text-sm font-medium hover:bg-pink-600 transition-colors shadow-sm text-center">
-                                Agregar
-                              </button>
-                            </div>
-                          )}
+                          <button onClick={() => { addToCart(p, quantities[p.id] || 1); triggerConfetti(); }} className="flex-1 min-w-[80px] px-2 py-1.5 bg-pink-500 text-white rounded-md text-sm font-medium hover:bg-pink-600 transition-colors shadow-sm text-center">
+                            Agregar
+                          </button>
                         </div>
                       </div>
-                    </article>
-                  </FadeInOnScroll>
-                );
-              })}
+                    </div>
+                  </article>
+                </FadeInOnScroll>
+              ))}
             </div>
           )}
           {visibleCount < filtered.length && (
