@@ -1,10 +1,8 @@
 /* dulceria.jsx
    Actualizado:
-   - Contenedores de tarjeta en tamaño original compacto.
-   - Imágenes aprovechan el 92% del ancho interno de la tarjeta sin deformarse.
-   - Botones de + y - corregidos (no se cortan).
-   - Flechas de galería siempre visibles.
-   - Interfaz simplificada sin subfiltros.
+   - Botones de cantidad (+ y -) rediseñados en un bloque compacto que no se desborda.
+   - Navegación nativa: El botón "Atrás" del celular ahora cierra la galería y el carrito sin salir de la página.
+   - Contenedores de tarjetas ajustados para mayor limpieza visual.
 */
 
 const { useState, useMemo, useEffect, useRef } = React;
@@ -80,7 +78,7 @@ function FadeInOnScroll({ children, delay = 0 }) {
   );
 }
 
-// Componente Image + modal
+// Componente Image + modal (Botón ATRÁS integrado)
 function ImageWithModal({ src, images, alt, className = 'w-[92%] max-w-[220px] h-40 mx-auto mt-3', imgClass = 'object-contain' }) {
   const [open, setOpen] = useState(false);
   const [isShowing, setIsShowing] = useState(false);
@@ -91,6 +89,30 @@ function ImageWithModal({ src, images, alt, className = 'w-[92%] max-w-[220px] h
 
   const imgArray = images && images.length > 0 ? images : [src];
   const currentImg = imgArray[currentIndex] || imgArray[0];
+
+  // Abrir Modal y registrar historial para botón Atrás
+  const openModal = (e) => {
+    e.preventDefault();
+    setOpen(true);
+    window.history.pushState({ modalOpen: true }, '');
+  };
+
+  // Cerrar Modal y limpiar historial
+  const closeModal = () => {
+    setOpen(false);
+    if (window.history.state && window.history.state.modalOpen) {
+      window.history.back();
+    }
+  };
+
+  // Escuchar el botón "Atrás" del navegador
+  useEffect(() => {
+    const handlePopState = () => {
+      if (open) setOpen(false);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [open]);
 
   useEffect(() => {
     let timeoutId;
@@ -114,7 +136,7 @@ function ImageWithModal({ src, images, alt, className = 'w-[92%] max-w-[220px] h
 
   useEffect(() => {
     function onKey(e) { 
-      if (e.key === 'Escape') setOpen(false); 
+      if (e.key === 'Escape') closeModal(); 
       if (e.key === 'ArrowRight') nextImg();
       if (e.key === 'ArrowLeft') prevImg();
     }
@@ -144,7 +166,7 @@ function ImageWithModal({ src, images, alt, className = 'w-[92%] max-w-[220px] h
   };
 
   const modalJsx = open && createPortal(
-    <div role="dialog" aria-modal="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4 transition-opacity duration-300 ease-out ${isShowing ? 'opacity-100' : 'opacity-0'}`} onClick={() => setOpen(false)}>
+    <div role="dialog" aria-modal="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4 transition-opacity duration-300 ease-out ${isShowing ? 'opacity-100' : 'opacity-0'}`} onClick={closeModal}>
       
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes subtleFade {
@@ -162,7 +184,7 @@ function ImageWithModal({ src, images, alt, className = 'w-[92%] max-w-[220px] h
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >
-          <button onClick={() => setOpen(false)} aria-label="Cerrar" className="absolute -top-12 right-2 md:top-0 md:-right-12 z-50 rounded-full bg-white/20 text-white p-2 hover:bg-white/40 transition-colors">
+          <button onClick={closeModal} aria-label="Cerrar" className="absolute -top-12 right-2 md:top-0 md:-right-12 z-50 rounded-full bg-white/20 text-white p-2 hover:bg-white/40 transition-colors">
             <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
 
@@ -198,7 +220,7 @@ function ImageWithModal({ src, images, alt, className = 'w-[92%] max-w-[220px] h
 
   return (
     <>
-      <button onClick={(e) => { e.preventDefault(); setOpen(true); }} className={`relative block overflow-hidden bg-white/50 rounded ${className}`} style={{ border: 'none', padding: 0 }}>
+      <button onClick={openModal} className={`relative block overflow-hidden bg-white/50 rounded ${className}`} style={{ border: 'none', padding: 0 }}>
         <img src={imgArray[0]} alt={alt} loading="lazy" onError={handleImgError} className={`${imgClass} w-full h-full mix-blend-multiply`} />
         
         {imgArray.length > 1 && (
@@ -253,7 +275,6 @@ function DulceriaApp() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // Datos del cliente para el pedido
   const [customerData, setCustomerData] = useState({
     nombre: '',
     direccion: '',
@@ -269,6 +290,27 @@ function DulceriaApp() {
   useEffect(() => {
     localStorage.setItem('eventosCart', JSON.stringify(cart));
   }, [cart]);
+
+  // Funciones para abrir y cerrar carrito integradas con botón Atrás del celular
+  const openCart = () => {
+    setCartOpen(true);
+    window.history.pushState({ cartOpen: true }, '');
+  };
+
+  const closeCart = () => {
+    setCartOpen(false);
+    if (window.history.state && window.history.state.cartOpen) {
+      window.history.back();
+    }
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (cartOpen) setCartOpen(false);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [cartOpen]);
 
   useEffect(() => {
     let mounted = true;
@@ -370,7 +412,7 @@ function DulceriaApp() {
         className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[60] bg-green-500 text-white px-3 py-2 sm:px-5 sm:py-3 rounded-full shadow-2xl hover:scale-105 transition-transform flex items-center justify-center gap-1.5 sm:gap-2"
         aria-label="Contactar por WhatsApp"
       >
-        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.417-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.599-3.835c1.522.902 3.222 1.387 4.953 1.388 5.417 0 9.825-4.407 9.827-9.823.001-2.624-1.022-5.091-2.882-6.951-1.859-1.86-4.322-2.883-6.941-2.883-5.418 0-9.825 4.408-9.827 9.825-.001 1.761.463 3.479 1.341 4.974l-1.003 3.665 3.754-.984zm11.103-7.514c-.301-.15-1.785-.881-2.062-.981-.278-.1-.48-.15-.682.15s-.782.981-.958 1.182c-.177.201-.354.226-.654.076-.301-.15-1.272-.469-2.422-1.494-.894-.797-1.498-1.782-1.674-2.083-.177-.301-.019-.464.132-.613.135-.134.301-.351.451-.527.151-.176.201-.301.302-.502.101-.201.05-.376-.025-.526-.075-.15-.682-1.642-.934-2.246-.246-.589-.516-.51-.682-.518-.174-.008-.374-.01-.573-.01-.2 0-.525.075-.801.376s-1.052 1.029-1.052 2.508 1.077 2.91 1.228 3.111c.151.201 2.12 3.238 5.136 4.538.718.309 1.278.494 1.714.633.721.221 1.376.19 1.894.113.578-.085 1.785-.73 2.037-1.432.252-.702.252-1.305.176-1.432-.075-.127-.278-.202-.579-.353z"/></svg>
+        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.417-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.599-3.835c1.522.902 3.222 1.387 4.953 1.388 5.417 0 9.825-4.407 9.827-9.823.001-2.624-1.022-5.091-2.882-6.951-1.859-1.86-4.322-2.883-6.941-2.883-5.418 0-9.825 4.408-9.827 9.825-.001 1.761.463 3.479 1.341 4.974l-1.003 3.665 3.754-.984zm11.103-7.514c-.301-.15-1.785-.881-2.062-.981-.278-.1-.48-.15-.682.15s-.782.981-.958 1.182c-.177.201-.354.226-.654.076-.301-.15-1.272-.469-2.422-1.494-.894-.797-1.498-1.782-1.674-2.083-.177-.301-.019-.464.132-.613.135-.134.301-.351.451-.527.151-.176.201-.301.302-.502.101-.201.05-.376-.025-.526-.075-.15-.682-1.642-.934-2.246-.246-.589-.516-.51-.682-.518-.174-.008-.374-.01-.573-.01-.573-.01-.2 0-.525.075-.801.376s-1.052 1.029-1.052 2.508 1.077 2.91 1.228 3.111c.151.201 2.12 3.238 5.136 4.538.718.309 1.278.494 1.714.633.721.221 1.376.19 1.894.113.578-.085 1.785-.73 2.037-1.432.252-.702.252-1.305.176-1.432-.075-.127-.278-.202-.579-.353z"/></svg>
         <span className="font-bold text-xs sm:text-sm">Contáctanos</span>
       </a>
 
@@ -406,7 +448,7 @@ function DulceriaApp() {
                 </button>
               ))}
             </nav>
-            <button onClick={() => setCartOpen(true)} className="relative p-2 rounded-md bg-white hover:bg-gray-50 border border-gray-100 shadow-sm" aria-label="Abrir carrito">
+            <button onClick={openCart} className="relative p-2 rounded-md bg-white hover:bg-gray-50 border border-gray-100 shadow-sm" aria-label="Abrir carrito">
               <img src="./src/carrito.png" alt="Carrito" onLoad={() => setCartImgVisible(true)} onError={(e) => { setCartImgVisible(false); e.target.style.display = 'none'; }} className="h-6 w-6 object-contain" style={{ display: cartImgVisible ? 'block' : 'none' }} />
               {!cartImgVisible && (
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -422,7 +464,6 @@ function DulceriaApp() {
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4" style={{ paddingTop: 8 }}>
         
-        {/* Sección de Filtros Simplificada */}
         <section className="bg-white rounded-lg p-3 sm:p-4 shadow-sm mb-4 border border-gray-100">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="flex items-center gap-2">
@@ -450,24 +491,30 @@ function DulceriaApp() {
                       <h3 className="font-semibold text-sm sm:text-base truncate text-gray-800">{p.name}</h3>
                       <p className="text-xs sm:text-sm text-gray-500 flex-1">{p.short || p.description}</p>
                       
-                      <div className="mt-3 space-y-2">
+                      {/* Rediseño de botones para evitar desbordes */}
+                      <div className="mt-auto pt-3">
                         <div className="text-base sm:text-lg font-bold text-gray-900">{moneyFmt.format(p.price || 0)}</div>
                         
-                        <div className="flex justify-end items-center gap-2 mt-2">
-                          <div className="flex items-center gap-1">
-                            <button onClick={() => decrementQuantity(p.id)} className="w-8 h-8 flex-shrink-0 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center text-xl pb-0.5 transition-colors">-</button>
+                        <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
+                          
+                          {/* Controles de cantidad agrupados */}
+                          <div className="flex items-center border border-gray-200 rounded-md bg-white">
+                            <button onClick={() => decrementQuantity(p.id)} className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 text-xl leading-none rounded-l-md">-</button>
                             <input
                               type="text"
                               inputMode="numeric"
                               value={quantities[p.id] || 1}
                               onChange={(e) => handleQuantityChange(p.id, e.target.value)}
-                              className="w-8 flex-shrink-0 text-center text-base font-medium bg-transparent outline-none"
+                              className="w-8 text-center text-sm font-medium bg-transparent outline-none border-x border-gray-200"
                             />
-                            <button onClick={() => incrementQuantity(p.id)} className="w-8 h-8 flex-shrink-0 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center text-xl pb-0.5 transition-colors">+</button>
+                            <button onClick={() => incrementQuantity(p.id)} className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 text-xl leading-none rounded-r-md">+</button>
                           </div>
-                          <button onClick={() => { addToCart(p, quantities[p.id] || 1); triggerConfetti(); }} className="px-3 py-2 bg-pink-500 text-white rounded-md text-sm hover:bg-pink-600 transition-colors shadow-sm whitespace-nowrap">
+                          
+                          {/* Botón agregar adaptable */}
+                          <button onClick={() => { addToCart(p, quantities[p.id] || 1); triggerConfetti(); }} className="flex-1 min-w-[80px] px-2 py-1.5 bg-pink-500 text-white rounded-md text-sm font-medium hover:bg-pink-600 transition-colors shadow-sm text-center">
                             Agregar
                           </button>
+
                         </div>
                       </div>
                     </div>
@@ -490,7 +537,7 @@ function DulceriaApp() {
           <h3 className="text-lg font-bold text-gray-800">Tu carrito</h3>
           <div className="flex items-center gap-2">
             <button onClick={() => setCart([])} className="text-sm text-red-500 hover:text-red-600 transition-colors">Vaciar</button>
-            <button onClick={() => setCartOpen(false)} className="px-2 py-1 border border-gray-200 rounded hover:bg-gray-50 transition-colors text-gray-600">Cerrar</button>
+            <button onClick={closeCart} className="px-2 py-1 border border-gray-200 rounded hover:bg-gray-50 transition-colors text-gray-600">Cerrar</button>
           </div>
         </div>
         
