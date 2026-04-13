@@ -2,8 +2,7 @@
    Actualizado:
    - Menú de categorías deslizable (Swipe) estilo App móvil.
    - Sistema de "Estado" (Agotado / Bajo Pedido) leyendo la columna 'estado' del Excel.
-   - Efecto Zoom (object-cover) en las miniaturas de los productos.
-   - Navegación nativa con botón "Atrás" y botón de WhatsApp original.
+   - Encabezado ultra-limpio.
 */
 
 const { useState, useMemo, useEffect, useRef } = React;
@@ -225,13 +224,13 @@ function ImageWithModal({ src, images, alt, className = 'w-full h-48', imgClass 
   );
 }
 
-/* Normaliza producto - AQUÍ LEEMOS LA COLUMNA "ESTADO" */
+/* Normaliza producto (AQUÍ SE AGREGA LA LECTURA DEL ESTADO) */
 function normalizeProduct(raw, idFallback) {
   const name = (raw.name ?? raw.Nombre ?? raw.nombre ?? '').toString().trim();
   const price = parsePrice(raw.price ?? raw.Precio ?? raw.precio ?? raw.Price);
   const description = (raw.description ?? raw.Descripcion ?? raw.descripcion ?? raw.short ?? '').toString();
   const category = (raw.category ?? raw.Categoria ?? raw.categoria ?? 'Sin categoría').toString().trim();
-  const estado = (raw.estado ?? raw.Estado ?? '').toString().trim(); // LECTURA DE COLUMNA ESTADO
+  const estado = (raw.estado ?? raw.Estado ?? '').toString().trim();
 
   let rawImage = (raw.image ?? raw.Imagen ?? raw.imagen ?? raw.Image ?? '').toString().trim();
 
@@ -250,7 +249,17 @@ function normalizeProduct(raw, idFallback) {
     });
   }
 
-  return { id: raw.id ?? idFallback, name, price, short: description, description, category, estado, image: imageList[0], images: imageList };
+  return { 
+    id: raw.id ?? idFallback, 
+    name, 
+    price, 
+    short: description, 
+    description, 
+    category, 
+    estado,
+    image: imageList[0], 
+    images: imageList 
+  };
 }
 
 /* App principal */
@@ -282,7 +291,6 @@ function DulceriaApp() {
     localStorage.setItem('eventosCart', JSON.stringify(cart));
   }, [cart]);
 
-  // Funciones para abrir y cerrar carrito integradas con botón Atrás
   const openCart = () => {
     setCartOpen(true);
     window.history.pushState({ cartOpen: true }, '');
@@ -396,8 +404,8 @@ function DulceriaApp() {
   return (
     <div className="min-h-screen text-gray-800" style={{ backgroundColor: '#F9F8F6' }}>
       
-      {/* Estilos para animaciones y ocultar barra de scroll en el menú móvil */}
-      <style dangerouslySetInnerHTML={{ __html: `
+      {/* Estilos inyectados para animaciones y ocultar barra de scroll */}
+      <style>{`
         @keyframes subtleFade {
           0% { opacity: 0.2; transform: scale(0.98); }
           100% { opacity: 1; transform: scale(1); }
@@ -405,7 +413,7 @@ function DulceriaApp() {
         .anim-fade { animation: subtleFade 0.35s ease-out forwards; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-      `}} />
+      `}</style>
 
       {/* Botón Flotante con diseño original WhatsApp */}
       <a
@@ -421,7 +429,7 @@ function DulceriaApp() {
         <span className="font-bold text-xs sm:text-sm">Contáctanos</span>
       </a>
 
-      {/* Header Fijo */}
+      {/* Header Ultra Limpio (Solo Logo y Carrito) */}
       <header className="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
           <a href="./" className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0 no-underline text-current">
@@ -452,10 +460,10 @@ function DulceriaApp() {
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4" style={{ paddingTop: 8 }}>
         
-        {/* Sección de Buscador y Menú Deslizable (Píldoras) */}
+        {/* Nueva Sección de Búsqueda y Categorías Deslizables */}
         <section className="bg-white rounded-lg p-3 sm:p-4 shadow-sm mb-4 border border-gray-100">
           <div className="mb-3">
-            <input aria-label="Buscar productos" value={query} onChange={e => setQuery(e.target.value)} className="w-full border border-gray-200 rounded-md px-3 py-2.5 text-sm focus:border-pink-400 focus:ring-1 focus:ring-pink-100 outline-none transition-shadow" placeholder="🔍 Buscar por nombre o categoría..." />
+            <input aria-label="Buscar productos" value={query} onChange={e => setQuery(e.target.value)} className="w-full border border-gray-200 rounded-md px-3 py-2.5 text-sm focus:border-pink-400 focus:ring-1 focus:ring-pink-100 outline-none transition-shadow" placeholder="🔍 Buscar por nombre de producto..." />
           </div>
           
           <div className="flex items-center overflow-x-auto whitespace-nowrap scrollbar-hide pb-1 gap-2">
@@ -466,7 +474,7 @@ function DulceriaApp() {
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors border flex-shrink-0 ${
                   category === c 
                     ? 'bg-pink-500 text-white border-pink-500 shadow-sm' 
-                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                    : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
                 }`}
               >
                 {c}
@@ -483,7 +491,6 @@ function DulceriaApp() {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {visibleProducts.map((p, index) => {
                 
-                // Validar Estados
                 const isAgotado = p.estado && p.estado.toLowerCase() === 'agotado';
                 const isBajoPedido = p.estado && p.estado.toLowerCase() === 'bajo pedido';
 
@@ -491,7 +498,7 @@ function DulceriaApp() {
                   <FadeInOnScroll key={p.id} delay={index * 50}>
                     <article className="bg-white rounded shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col h-full border border-gray-100 relative">
                       
-                      {/* Etiquetas de estado visuales */}
+                      {/* Etiquetas de Estado */}
                       {isAgotado && (
                         <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] uppercase font-bold px-2 py-1 rounded shadow-sm z-10 tracking-wider">Agotado</span>
                       )}
@@ -499,15 +506,8 @@ function DulceriaApp() {
                         <span className="absolute top-2 right-2 bg-orange-500 text-white text-[10px] uppercase font-bold px-2 py-1 rounded shadow-sm z-10 tracking-wider">Bajo Pedido</span>
                       )}
 
-                      {/* Imagen atenuada si está agotado */}
-                      <div className={isAgotado ? 'opacity-50 grayscale' : ''}>
-                        <ImageWithModal 
-                          src={p.image || `./src/${slugify(p.name)}.jpg`} 
-                          images={p.images} 
-                          alt={p.name} 
-                          className="w-full h-44 sm:h-48" 
-                          imgClass="object-cover w-full h-full" 
-                        />
+                      <div className={isAgotado ? 'opacity-50 grayscale-[30%]' : ''}>
+                        <ImageWithModal src={p.image || `./src/${slugify(p.name)}.jpg`} images={p.images} alt={p.name} className="w-full h-44 sm:h-48" imgClass="object-cover w-full h-full" />
                       </div>
                       
                       <div className="p-3 flex-1 flex flex-col">
@@ -517,9 +517,9 @@ function DulceriaApp() {
                         <div className="mt-auto pt-3">
                           <div className={`text-base sm:text-lg font-bold ${isAgotado ? 'text-gray-400' : 'text-gray-900'}`}>{moneyFmt.format(p.price || 0)}</div>
                           
-                          {/* Botón condicional según el estado */}
+                          {/* Botones o Mensaje de Agotado */}
                           {isAgotado ? (
-                            <div className="mt-2 w-full px-2 py-1.5 bg-gray-100 text-gray-400 rounded-md text-xs sm:text-sm font-medium text-center border border-gray-200 cursor-not-allowed select-none">
+                            <div className="mt-2 w-full px-2 py-2 bg-gray-100 text-gray-400 rounded-md text-xs sm:text-sm font-medium text-center border border-gray-200 cursor-not-allowed select-none">
                               No disponible
                             </div>
                           ) : (
@@ -541,6 +541,7 @@ function DulceriaApp() {
                               </button>
                             </div>
                           )}
+
                         </div>
                       </div>
                     </article>
