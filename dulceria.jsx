@@ -1,9 +1,8 @@
 /* dulceria.jsx
    Actualizado:
-   - Fondo general actualizado a "Blanco Hueso" (#F9F8F6) para mayor elegancia.
-   - Botón de WhatsApp actualizado al color verde oficial (#25D366) y logo exacto.
-   - Botones de cantidad (+ y -) rediseñados en un bloque compacto.
-   - Navegación nativa: El botón "Atrás" cierra la galería sin salir de la página.
+   - Imágenes con efecto Zoom (object-cover) llenando el 100% del ancho de la tarjeta.
+   - Vista completa sin recortes al abrir la galería (modal).
+   - Fondo general "Blanco Hueso" y Botón WhatsApp original.
 */
 
 const { useState, useMemo, useEffect, useRef } = React;
@@ -80,7 +79,7 @@ function FadeInOnScroll({ children, delay = 0 }) {
 }
 
 // Componente Image + modal
-function ImageWithModal({ src, images, alt, className = 'w-[92%] max-w-[220px] h-40 mx-auto mt-3', imgClass = 'object-contain' }) {
+function ImageWithModal({ src, images, alt, className = 'w-full h-48', imgClass = 'object-cover w-full h-full' }) {
   const [open, setOpen] = useState(false);
   const [isShowing, setIsShowing] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -201,6 +200,7 @@ function ImageWithModal({ src, images, alt, className = 'w-[92%] max-w-[220px] h
             </>
           )}
           
+          {/* Aquí forzamos object-contain para que en grande sí se vea completa */}
           <img 
             key={currentIndex} 
             src={currentImg} 
@@ -218,11 +218,11 @@ function ImageWithModal({ src, images, alt, className = 'w-[92%] max-w-[220px] h
 
   return (
     <>
-      <button onClick={openModal} className={`relative block overflow-hidden bg-white/50 rounded ${className}`} style={{ border: 'none', padding: 0 }}>
-        <img src={imgArray[0]} alt={alt} loading="lazy" onError={handleImgError} className={`${imgClass} w-full h-full mix-blend-multiply`} />
+      <button onClick={openModal} className={`relative block overflow-hidden bg-gray-50 flex-shrink-0 ${className}`} style={{ border: 'none', padding: 0 }}>
+        <img src={imgArray[0]} alt={alt} loading="lazy" onError={handleImgError} className={`${imgClass} transition-transform duration-500 hover:scale-105`} />
         
         {imgArray.length > 1 && (
-          <span className="absolute bottom-1.5 right-1.5 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shadow backdrop-blur-sm">
+          <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shadow backdrop-blur-sm">
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
             {imgArray.length}
           </span>
@@ -487,7 +487,16 @@ function DulceriaApp() {
               {visibleProducts.map((p, index) => (
                 <FadeInOnScroll key={p.id} delay={index * 50}>
                   <article className="bg-white rounded shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col h-full border border-gray-100">
-                    <ImageWithModal src={p.image || `./src/${slugify(p.name)}.jpg`} images={p.images} alt={p.name} className="w-[92%] max-w-[220px] h-40 mx-auto mt-3" imgClass="object-contain" />
+                    
+                    {/* Tarjeta de imagen al 100% de ancho y con zoom (cover) */}
+                    <ImageWithModal 
+                      src={p.image || `./src/${slugify(p.name)}.jpg`} 
+                      images={p.images} 
+                      alt={p.name} 
+                      className="w-full h-44 sm:h-48" 
+                      imgClass="object-cover w-full h-full" 
+                    />
+                    
                     <div className="p-3 flex-1 flex flex-col">
                       <h3 className="font-semibold text-sm sm:text-base truncate text-gray-800">{p.name}</h3>
                       <p className="text-xs sm:text-sm text-gray-500 flex-1">{p.short || p.description}</p>
@@ -543,7 +552,7 @@ function DulceriaApp() {
           ) : (
             cart.map(p => (
               <div key={p.id} className="flex items-center gap-3">
-                <ImageWithModal src={p.image || `./src/${slugify(p.name)}.jpg`} images={p.images} alt={p.name} className="w-20 h-16 bg-gray-50" imgClass="object-contain mix-blend-multiply" />
+                <ImageWithModal src={p.image || `./src/${slugify(p.name)}.jpg`} images={p.images} alt={p.name} className="w-16 h-16 rounded overflow-hidden flex-shrink-0" imgClass="object-cover w-full h-full" />
                 <div className="flex-1">
                   <div className="font-semibold text-sm truncate text-gray-800">{p.name}</div>
                   <div className="text-xs text-pink-600 font-medium">{moneyFmt.format(p.price || 0)}</div>
