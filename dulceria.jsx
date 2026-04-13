@@ -1,9 +1,10 @@
 /* dulceria.jsx
    Actualizado:
-   - Imágenes de productos al 85% para mayor protagonismo.
+   - Contenedores de tarjeta en tamaño original compacto.
+   - Imágenes aprovechan el 92% del ancho interno de la tarjeta sin deformarse.
    - Botones de + y - corregidos (no se cortan).
-   - Flechas de galería siempre visibles (adaptables a PC y Móvil).
-   - Interfaz simplificada (se ocultaron los subfiltros para mayor limpieza visual).
+   - Flechas de galería siempre visibles.
+   - Interfaz simplificada sin subfiltros.
 */
 
 const { useState, useMemo, useEffect, useRef } = React;
@@ -79,8 +80,8 @@ function FadeInOnScroll({ children, delay = 0 }) {
   );
 }
 
-// Componente Image + modal (FLECHAS SIEMPRE VISIBLES)
-function ImageWithModal({ src, images, alt, className = 'w-[85%] max-w-[250px] h-44 mx-auto mt-4', imgClass = 'object-contain' }) {
+// Componente Image + modal
+function ImageWithModal({ src, images, alt, className = 'w-[92%] max-w-[220px] h-40 mx-auto mt-3', imgClass = 'object-contain' }) {
   const [open, setOpen] = useState(false);
   const [isShowing, setIsShowing] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -167,7 +168,6 @@ function ImageWithModal({ src, images, alt, className = 'w-[85%] max-w-[250px] h
 
           {imgArray.length > 1 && (
             <>
-              {/* Flechas ahora visibles siempre (adaptan tamaño) */}
               <button onClick={prevImg} className="absolute left-2 md:-left-16 z-50 bg-black/60 hover:bg-black/80 text-white p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-transform hover:scale-110">
                 <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"></path></svg>
               </button>
@@ -370,7 +370,7 @@ function DulceriaApp() {
         className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[60] bg-green-500 text-white px-3 py-2 sm:px-5 sm:py-3 rounded-full shadow-2xl hover:scale-105 transition-transform flex items-center justify-center gap-1.5 sm:gap-2"
         aria-label="Contactar por WhatsApp"
       >
-        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.417-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.599-3.835c1.522.902 3.222 1.387 4.953 1.388 5.417 0 9.825-4.407 9.827-9.823.001-2.624-1.022-5.091-2.882-6.951-1.859-1.86-4.322-2.883-6.941-2.883-5.418 0-9.825 4.408-9.827 9.825-.001 1.761.463 3.479 1.341 4.974l-1.003 3.665 3.754-.984zm11.103-7.514c-.301-.15-1.785-.881-2.062-.981-.278-.1-.48-.15-.682.15s-.782.981-.958 1.182c-.177.201-.354.226-.654.076-.301-.15-1.272-.469-2.422-1.494-.894-.797-1.498-1.782-1.674-2.083-.177-.301-.019-.464.132-.613.135-.134.301-.351.451-.527.151-.176.201-.301.302-.502.101-.201.05-.376-.025-.526-.075-.15-.682-1.642-.934-2.246-.246-.589-.516-.51-.682-.518-.174-.008-.374-.01-.573-.01-.573-.01-.2 0-.525.075-.801.376s-1.052 1.029-1.052 2.508 1.077 2.91 1.228 3.111c.151.201 2.12 3.238 5.136 4.538.718.309 1.278.494 1.714.633.721.221 1.376.19 1.894.113.578-.085 1.785-.73 2.037-1.432.252-.702.252-1.305.176-1.432-.075-.127-.278-.202-.579-.353z"/></svg>
+        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.417-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.599-3.835c1.522.902 3.222 1.387 4.953 1.388 5.417 0 9.825-4.407 9.827-9.823.001-2.624-1.022-5.091-2.882-6.951-1.859-1.86-4.322-2.883-6.941-2.883-5.418 0-9.825 4.408-9.827 9.825-.001 1.761.463 3.479 1.341 4.974l-1.003 3.665 3.754-.984zm11.103-7.514c-.301-.15-1.785-.881-2.062-.981-.278-.1-.48-.15-.682.15s-.782.981-.958 1.182c-.177.201-.354.226-.654.076-.301-.15-1.272-.469-2.422-1.494-.894-.797-1.498-1.782-1.674-2.083-.177-.301-.019-.464.132-.613.135-.134.301-.351.451-.527.151-.176.201-.301.302-.502.101-.201.05-.376-.025-.526-.075-.15-.682-1.642-.934-2.246-.246-.589-.516-.51-.682-.518-.174-.008-.374-.01-.573-.01-.2 0-.525.075-.801.376s-1.052 1.029-1.052 2.508 1.077 2.91 1.228 3.111c.151.201 2.12 3.238 5.136 4.538.718.309 1.278.494 1.714.633.721.221 1.376.19 1.894.113.578-.085 1.785-.73 2.037-1.432.252-.702.252-1.305.176-1.432-.075-.127-.278-.202-.579-.353z"/></svg>
         <span className="font-bold text-xs sm:text-sm">Contáctanos</span>
       </a>
 
@@ -445,7 +445,7 @@ function DulceriaApp() {
               {visibleProducts.map((p, index) => (
                 <FadeInOnScroll key={p.id} delay={index * 50}>
                   <article className="bg-white rounded shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col h-full border border-gray-100">
-                    <ImageWithModal src={p.image || `./src/${slugify(p.name)}.jpg`} images={p.images} alt={p.name} className="w-[85%] max-w-[250px] h-44 mx-auto mt-4" imgClass="object-contain" />
+                    <ImageWithModal src={p.image || `./src/${slugify(p.name)}.jpg`} images={p.images} alt={p.name} className="w-[92%] max-w-[220px] h-40 mx-auto mt-3" imgClass="object-contain" />
                     <div className="p-3 flex-1 flex flex-col">
                       <h3 className="font-semibold text-sm sm:text-base truncate text-gray-800">{p.name}</h3>
                       <p className="text-xs sm:text-sm text-gray-500 flex-1">{p.short || p.description}</p>
