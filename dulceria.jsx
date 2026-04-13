@@ -1,9 +1,9 @@
 /* dulceria.jsx
    Actualizado:
-   - Soporte para múltiples imágenes por producto (separadas por coma en el Excel).
-   - Galería de imágenes integrada en la ventana modal.
-   - Soporte para deslizar (swipe) con el dedo en teléfonos móviles.
-   - Animación de transición segura.
+   - Imágenes de productos al 85% para mayor protagonismo.
+   - Botones de + y - corregidos (no se cortan).
+   - Flechas de galería siempre visibles (adaptables a PC y Móvil).
+   - Interfaz simplificada (se ocultaron los subfiltros para mayor limpieza visual).
 */
 
 const { useState, useMemo, useEffect, useRef } = React;
@@ -79,13 +79,12 @@ function FadeInOnScroll({ children, delay = 0 }) {
   );
 }
 
-// Componente Image + modal (CARRUSEL MÓVIL Y ANIMACIONES)
-function ImageWithModal({ src, images, alt, className = 'w-[72%] max-w-[220px] h-36 mx-auto', imgClass = 'object-contain' }) {
+// Componente Image + modal (FLECHAS SIEMPRE VISIBLES)
+function ImageWithModal({ src, images, alt, className = 'w-[85%] max-w-[250px] h-44 mx-auto mt-4', imgClass = 'object-contain' }) {
   const [open, setOpen] = useState(false);
   const [isShowing, setIsShowing] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Estados para detectar el deslizamiento del dedo (Swipe)
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
 
@@ -103,7 +102,6 @@ function ImageWithModal({ src, images, alt, className = 'w-[72%] max-w-[220px] h
     return () => clearTimeout(timeoutId);
   }, [open]);
   
-  // Funciones para cambiar foto
   const nextImg = (e) => { 
     if (e) e.stopPropagation(); 
     setCurrentIndex(prev => (prev + 1) % imgArray.length); 
@@ -113,7 +111,6 @@ function ImageWithModal({ src, images, alt, className = 'w-[72%] max-w-[220px] h
     setCurrentIndex(prev => (prev - 1 + imgArray.length) % imgArray.length); 
   };
 
-  // Controlar con teclado (Computadora)
   useEffect(() => {
     function onKey(e) { 
       if (e.key === 'Escape') setOpen(false); 
@@ -124,7 +121,6 @@ function ImageWithModal({ src, images, alt, className = 'w-[72%] max-w-[220px] h
     return () => window.removeEventListener('keydown', onKey);
   }, [open, imgArray.length]);
 
-  // Lógica matemática para el Swipe en teléfonos
   const minSwipeDistance = 40; 
 
   const onTouchStart = (e) => {
@@ -149,7 +145,6 @@ function ImageWithModal({ src, images, alt, className = 'w-[72%] max-w-[220px] h
   const modalJsx = open && createPortal(
     <div role="dialog" aria-modal="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4 transition-opacity duration-300 ease-out ${isShowing ? 'opacity-100' : 'opacity-0'}`} onClick={() => setOpen(false)}>
       
-      {/* Estilos seguros inyectados para la animación */}
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes subtleFade {
           0% { opacity: 0.2; transform: scale(0.98); }
@@ -172,17 +167,13 @@ function ImageWithModal({ src, images, alt, className = 'w-[72%] max-w-[220px] h
 
           {imgArray.length > 1 && (
             <>
-              <button onClick={prevImg} className="hidden md:block absolute left-0 md:-left-16 z-50 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full shadow-lg backdrop-blur-sm transition-transform hover:scale-110">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"></path></svg>
+              {/* Flechas ahora visibles siempre (adaptan tamaño) */}
+              <button onClick={prevImg} className="absolute left-2 md:-left-16 z-50 bg-black/60 hover:bg-black/80 text-white p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-transform hover:scale-110">
+                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"></path></svg>
               </button>
-              <button onClick={nextImg} className="hidden md:block absolute right-0 md:-right-16 z-50 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full shadow-lg backdrop-blur-sm transition-transform hover:scale-110">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"></path></svg>
+              <button onClick={nextImg} className="absolute right-2 md:-right-16 z-50 bg-black/60 hover:bg-black/80 text-white p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-transform hover:scale-110">
+                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"></path></svg>
               </button>
-              
-              <div className="md:hidden absolute top-1/2 -translate-y-1/2 flex justify-between w-full px-1 pointer-events-none opacity-30">
-                 <svg className="w-8 h-8 text-white drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path></svg>
-                 <svg className="w-8 h-8 text-white drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path></svg>
-              </div>
 
               <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 text-white/90 text-sm font-medium tracking-widest bg-black/50 px-4 py-1.5 rounded-full z-50 backdrop-blur-sm">
                 {currentIndex + 1} / {imgArray.length}
@@ -228,8 +219,6 @@ function normalizeProduct(raw, idFallback) {
   const price = parsePrice(raw.price ?? raw.Precio ?? raw.precio ?? raw.Price);
   const description = (raw.description ?? raw.Descripcion ?? raw.descripcion ?? raw.short ?? '').toString();
   const category = (raw.category ?? raw.Categoria ?? raw.categoria ?? 'Sin categoría').toString().trim();
-  let subcategory = (raw.subcategory ?? raw.Subcategoria ?? raw.subcategoria ?? '').toString().trim();
-  if (!subcategory) subcategory = 'Todas';
 
   let rawImage = (raw.image ?? raw.Imagen ?? raw.imagen ?? raw.Image ?? '').toString().trim();
 
@@ -248,7 +237,7 @@ function normalizeProduct(raw, idFallback) {
     });
   }
 
-  return { id: raw.id ?? idFallback, name, price, short: description, description, category, subcategory, image: imageList[0], images: imageList };
+  return { id: raw.id ?? idFallback, name, price, short: description, description, category, image: imageList[0], images: imageList };
 }
 
 /* App principal */
@@ -256,7 +245,6 @@ function DulceriaApp() {
   const [products, setProducts] = useState([]);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Todos');
-  const [subcategory, setSubcategory] = useState('Todas');
   const [visibleCount, setVisibleCount] = useState(12);
 
   // Carrito con persistencia
@@ -306,17 +294,9 @@ function DulceriaApp() {
   }, []);
 
   const categories = useMemo(() => ['Todos', ...new Set(products.map(p => p.category))], [products]);
-  const subcategories = useMemo(() => {
-    const set = new Set(['Todas']);
-    products.forEach(p => {
-      if ((category === 'Todos' || p.category === category) && p.subcategory !== 'Todas') set.add(p.subcategory);
-    });
-    return Array.from(set);
-  }, [products, category]);
 
   function handleCategoryChange(c) {
     setCategory(c);
-    setSubcategory('Todas');
     triggerConfetti();
   }
 
@@ -324,9 +304,8 @@ function DulceriaApp() {
     const q = query.toLowerCase();
     return products
       .filter(p => (category === 'Todos' || p.category === category))
-      .filter(p => (subcategory === 'Todas' || p.subcategory === subcategory))
-      .filter(p => (p.name + p.category + p.subcategory).toLowerCase().includes(q));
-  }, [products, category, subcategory, query]);
+      .filter(p => (p.name + p.category).toLowerCase().includes(q));
+  }, [products, category, query]);
 
   const visibleProducts = filtered.slice(0, visibleCount);
 
@@ -391,7 +370,7 @@ function DulceriaApp() {
         className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[60] bg-green-500 text-white px-3 py-2 sm:px-5 sm:py-3 rounded-full shadow-2xl hover:scale-105 transition-transform flex items-center justify-center gap-1.5 sm:gap-2"
         aria-label="Contactar por WhatsApp"
       >
-        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.417-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.599-3.835c1.522.902 3.222 1.387 4.953 1.388 5.417 0 9.825-4.407 9.827-9.823.001-2.624-1.022-5.091-2.882-6.951-1.859-1.86-4.322-2.883-6.941-2.883-5.418 0-9.825 4.408-9.827 9.825-.001 1.761.463 3.479 1.341 4.974l-1.003 3.665 3.754-.984zm11.103-7.514c-.301-.15-1.785-.881-2.062-.981-.278-.1-.48-.15-.682.15s-.782.981-.958 1.182c-.177.201-.354.226-.654.076-.301-.15-1.272-.469-2.422-1.494-.894-.797-1.498-1.782-1.674-2.083-.177-.301-.019-.464.132-.613.135-.134.301-.351.451-.527.151-.176.201-.301.302-.502.101-.201.05-.376-.025-.526-.075-.15-.682-1.642-.934-2.246-.246-.589-.516-.51-.682-.518-.174-.008-.374-.01-.573-.01-.2 0-.525.075-.801.376s-1.052 1.029-1.052 2.508 1.077 2.91 1.228 3.111c.151.201 2.12 3.238 5.136 4.538.718.309 1.278.494 1.714.633.721.221 1.376.19 1.894.113.578-.085 1.785-.73 2.037-1.432.252-.702.252-1.305.176-1.432-.075-.127-.278-.202-.579-.353z"/></svg>
+        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.417-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.599-3.835c1.522.902 3.222 1.387 4.953 1.388 5.417 0 9.825-4.407 9.827-9.823.001-2.624-1.022-5.091-2.882-6.951-1.859-1.86-4.322-2.883-6.941-2.883-5.418 0-9.825 4.408-9.827 9.825-.001 1.761.463 3.479 1.341 4.974l-1.003 3.665 3.754-.984zm11.103-7.514c-.301-.15-1.785-.881-2.062-.981-.278-.1-.48-.15-.682.15s-.782.981-.958 1.182c-.177.201-.354.226-.654.076-.301-.15-1.272-.469-2.422-1.494-.894-.797-1.498-1.782-1.674-2.083-.177-.301-.019-.464.132-.613.135-.134.301-.351.451-.527.151-.176.201-.301.302-.502.101-.201.05-.376-.025-.526-.075-.15-.682-1.642-.934-2.246-.246-.589-.516-.51-.682-.518-.174-.008-.374-.01-.573-.01-.573-.01-.2 0-.525.075-.801.376s-1.052 1.029-1.052 2.508 1.077 2.91 1.228 3.111c.151.201 2.12 3.238 5.136 4.538.718.309 1.278.494 1.714.633.721.221 1.376.19 1.894.113.578-.085 1.785-.73 2.037-1.432.252-.702.252-1.305.176-1.432-.075-.127-.278-.202-.579-.353z"/></svg>
         <span className="font-bold text-xs sm:text-sm">Contáctanos</span>
       </a>
 
@@ -442,33 +421,19 @@ function DulceriaApp() {
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4" style={{ paddingTop: 8 }}>
+        
+        {/* Sección de Filtros Simplificada */}
         <section className="bg-white rounded-lg p-3 sm:p-4 shadow-sm mb-4 border border-gray-100">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="col-span-1 md:col-span-1 flex items-center gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="flex items-center gap-2">
               <input aria-label="Buscar productos" value={query} onChange={e => setQuery(e.target.value)} className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:border-pink-300 focus:outline-none" placeholder="Buscar por nombre o categoría..." />
             </div>
-            <div className="col-span-1 md:col-span-2 flex flex-wrap gap-2 items-center justify-end">
-              <select value={category} onChange={e => handleCategoryChange(e.target.value)} className="border border-gray-200 rounded px-3 py-2 text-sm max-w-full focus:outline-none">
+            <div className="flex flex-wrap gap-2 items-center justify-end">
+              <select value={category} onChange={e => handleCategoryChange(e.target.value)} className="border border-gray-200 rounded px-3 py-2 text-sm w-full md:w-auto focus:outline-none">
                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
-              {subcategories.length > 1 && (
-                <select value={subcategory} onChange={e => setSubcategory(e.target.value)} className="border rounded px-3 py-2 text-sm max-w-full bg-pink-50 border-pink-200 focus:outline-none">
-                  {subcategories.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              )}
             </div>
           </div>
-          
-          {subcategories.length > 1 && (
-            <div className="mt-3 pt-3 border-t border-gray-100 flex items-center overflow-x-auto whitespace-nowrap scrollbar-hide gap-2">
-               <span className="text-sm text-gray-500 font-medium mr-1">Filtros rápidos:</span>
-               {subcategories.map(s => (
-                 <button key={s} className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium border transition-colors ${subcategory === s ? 'bg-pink-100 border-pink-300 text-pink-700' : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'}`} onClick={() => setSubcategory(s)}>
-                   {s}
-                 </button>
-               ))}
-            </div>
-          )}
         </section>
 
         <section>
@@ -480,7 +445,7 @@ function DulceriaApp() {
               {visibleProducts.map((p, index) => (
                 <FadeInOnScroll key={p.id} delay={index * 50}>
                   <article className="bg-white rounded shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col h-full border border-gray-100">
-                    <ImageWithModal src={p.image || `./src/${slugify(p.name)}.jpg`} images={p.images} alt={p.name} className="w-[72%] max-w-[220px] h-36 mx-auto mt-3" imgClass="object-contain" />
+                    <ImageWithModal src={p.image || `./src/${slugify(p.name)}.jpg`} images={p.images} alt={p.name} className="w-[85%] max-w-[250px] h-44 mx-auto mt-4" imgClass="object-contain" />
                     <div className="p-3 flex-1 flex flex-col">
                       <h3 className="font-semibold text-sm sm:text-base truncate text-gray-800">{p.name}</h3>
                       <p className="text-xs sm:text-sm text-gray-500 flex-1">{p.short || p.description}</p>
@@ -488,19 +453,19 @@ function DulceriaApp() {
                       <div className="mt-3 space-y-2">
                         <div className="text-base sm:text-lg font-bold text-gray-900">{moneyFmt.format(p.price || 0)}</div>
                         
-                        <div className="flex justify-end items-center gap-3 mt-2">
-                          <div className="flex items-center gap-2">
-                            <button onClick={() => decrementQuantity(p.id)} className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center text-lg leading-none transition-colors">-</button>
+                        <div className="flex justify-end items-center gap-2 mt-2">
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => decrementQuantity(p.id)} className="w-8 h-8 flex-shrink-0 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center text-xl pb-0.5 transition-colors">-</button>
                             <input
                               type="text"
                               inputMode="numeric"
                               value={quantities[p.id] || 1}
                               onChange={(e) => handleQuantityChange(p.id, e.target.value)}
-                              className="w-8 text-center text-base font-medium bg-transparent outline-none"
+                              className="w-8 flex-shrink-0 text-center text-base font-medium bg-transparent outline-none"
                             />
-                            <button onClick={() => incrementQuantity(p.id)} className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center text-lg leading-none transition-colors">+</button>
+                            <button onClick={() => incrementQuantity(p.id)} className="w-8 h-8 flex-shrink-0 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 flex items-center justify-center text-xl pb-0.5 transition-colors">+</button>
                           </div>
-                          <button onClick={() => { addToCart(p, quantities[p.id] || 1); triggerConfetti(); }} className="px-3 py-2 bg-pink-500 text-white rounded-md text-sm hover:bg-pink-600 transition-colors shadow-sm">
+                          <button onClick={() => { addToCart(p, quantities[p.id] || 1); triggerConfetti(); }} className="px-3 py-2 bg-pink-500 text-white rounded-md text-sm hover:bg-pink-600 transition-colors shadow-sm whitespace-nowrap">
                             Agregar
                           </button>
                         </div>
