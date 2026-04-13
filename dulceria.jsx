@@ -1,8 +1,9 @@
 /* dulceria.jsx
    Actualizado:
-   - Botones de cantidad (+ y -) rediseñados en un bloque compacto que no se desborda.
-   - Navegación nativa: El botón "Atrás" del celular ahora cierra la galería y el carrito sin salir de la página.
-   - Contenedores de tarjetas ajustados para mayor limpieza visual.
+   - Fondo general actualizado a "Blanco Hueso" (#F9F8F6) para mayor elegancia.
+   - Botón de WhatsApp actualizado al color verde oficial (#25D366) y logo exacto.
+   - Botones de cantidad (+ y -) rediseñados en un bloque compacto.
+   - Navegación nativa: El botón "Atrás" cierra la galería sin salir de la página.
 */
 
 const { useState, useMemo, useEffect, useRef } = React;
@@ -78,7 +79,7 @@ function FadeInOnScroll({ children, delay = 0 }) {
   );
 }
 
-// Componente Image + modal (Botón ATRÁS integrado)
+// Componente Image + modal
 function ImageWithModal({ src, images, alt, className = 'w-[92%] max-w-[220px] h-40 mx-auto mt-3', imgClass = 'object-contain' }) {
   const [open, setOpen] = useState(false);
   const [isShowing, setIsShowing] = useState(false);
@@ -90,14 +91,12 @@ function ImageWithModal({ src, images, alt, className = 'w-[92%] max-w-[220px] h
   const imgArray = images && images.length > 0 ? images : [src];
   const currentImg = imgArray[currentIndex] || imgArray[0];
 
-  // Abrir Modal y registrar historial para botón Atrás
   const openModal = (e) => {
     e.preventDefault();
     setOpen(true);
     window.history.pushState({ modalOpen: true }, '');
   };
 
-  // Cerrar Modal y limpiar historial
   const closeModal = () => {
     setOpen(false);
     if (window.history.state && window.history.state.modalOpen) {
@@ -105,7 +104,6 @@ function ImageWithModal({ src, images, alt, className = 'w-[92%] max-w-[220px] h
     }
   };
 
-  // Escuchar el botón "Atrás" del navegador
   useEffect(() => {
     const handlePopState = () => {
       if (open) setOpen(false);
@@ -291,7 +289,7 @@ function DulceriaApp() {
     localStorage.setItem('eventosCart', JSON.stringify(cart));
   }, [cart]);
 
-  // Funciones para abrir y cerrar carrito integradas con botón Atrás del celular
+  // Funciones para abrir y cerrar carrito integradas con botón Atrás
   const openCart = () => {
     setCartOpen(true);
     window.history.pushState({ cartOpen: true }, '');
@@ -403,16 +401,19 @@ function DulceriaApp() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-white to-gray-100 text-gray-800">
+    <div className="min-h-screen text-gray-800" style={{ backgroundColor: '#F9F8F6' }}>
       
-      {/* Botón Flotante */}
+      {/* Botón Flotante con diseño original WhatsApp */}
       <a
         href="https://wa.me/50242454160?text=Hola,%20tengo%20una%20consulta%20sobre%20sus%20servicios%20para%20eventos."
         target="_blank"
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[60] bg-green-500 text-white px-3 py-2 sm:px-5 sm:py-3 rounded-full shadow-2xl hover:scale-105 transition-transform flex items-center justify-center gap-1.5 sm:gap-2"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[60] text-white px-3 py-2 sm:px-5 sm:py-3 rounded-full shadow-2xl hover:scale-105 transition-transform flex items-center justify-center gap-1.5 sm:gap-2"
+        style={{ backgroundColor: '#25D366' }}
         aria-label="Contactar por WhatsApp"
       >
-        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.417-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.599-3.835c1.522.902 3.222 1.387 4.953 1.388 5.417 0 9.825-4.407 9.827-9.823.001-2.624-1.022-5.091-2.882-6.951-1.859-1.86-4.322-2.883-6.941-2.883-5.418 0-9.825 4.408-9.827 9.825-.001 1.761.463 3.479 1.341 4.974l-1.003 3.665 3.754-.984zm11.103-7.514c-.301-.15-1.785-.881-2.062-.981-.278-.1-.48-.15-.682.15s-.782.981-.958 1.182c-.177.201-.354.226-.654.076-.301-.15-1.272-.469-2.422-1.494-.894-.797-1.498-1.782-1.674-2.083-.177-.301-.019-.464.132-.613.135-.134.301-.351.451-.527.151-.176.201-.301.302-.502.101-.201.05-.376-.025-.526-.075-.15-.682-1.642-.934-2.246-.246-.589-.516-.51-.682-.518-.174-.008-.374-.01-.573-.01-.573-.01-.2 0-.525.075-.801.376s-1.052 1.029-1.052 2.508 1.077 2.91 1.228 3.111c.151.201 2.12 3.238 5.136 4.538.718.309 1.278.494 1.714.633.721.221 1.376.19 1.894.113.578-.085 1.785-.73 2.037-1.432.252-.702.252-1.305.176-1.432-.075-.127-.278-.202-.579-.353z"/></svg>
+        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12.031 0C5.385 0 0 5.384 0 12.031c0 2.128.552 4.195 1.6 6.015L.231 24l6.096-1.599a11.957 11.957 0 005.704 1.442h.005c6.645 0 12.028-5.385 12.028-12.032C24.064 5.387 18.679 0 12.031 0zm0 21.849h-.003c-1.802 0-3.568-.484-5.116-1.401l-.367-.217-3.803.997.997-3.71-.238-.379A10.016 10.016 0 012.006 12.03c0-5.529 4.5-10.026 10.027-10.026 5.527 0 10.025 4.5 10.025 10.027 0 5.53-4.5 10.018-10.027 10.018zm5.503-7.518c-.301-.151-1.785-.881-2.062-.981-.278-.1-.481-.151-.682.151-.202.302-.782.981-.958 1.182-.176.202-.353.226-.654.076-.301-.151-1.272-.469-2.422-1.494-.894-.797-1.498-1.782-1.674-2.083-.177-.302-.02-.464.132-.614.134-.134.301-.351.451-.527.151-.176.202-.302.302-.502.101-.202.05-.376-.025-.526-.075-.151-.682-1.642-.934-2.246-.246-.589-.516-.51-.682-.518-.174-.008-.374-.01-.573-.01-.2 0-.525.075-.801.376s-1.052 1.029-1.052 2.508 1.077 2.91 1.228 3.111c.151.202 2.12 3.238 5.136 4.538.718.309 1.278.494 1.714.633.721.221 1.376.19 1.894.113.578-.085 1.785-.73 2.037-1.432.252-.702.252-1.305.176-1.432-.075-.127-.278-.202-.579-.353z"/>
+        </svg>
         <span className="font-bold text-xs sm:text-sm">Contáctanos</span>
       </a>
 
@@ -491,13 +492,10 @@ function DulceriaApp() {
                       <h3 className="font-semibold text-sm sm:text-base truncate text-gray-800">{p.name}</h3>
                       <p className="text-xs sm:text-sm text-gray-500 flex-1">{p.short || p.description}</p>
                       
-                      {/* Rediseño de botones para evitar desbordes */}
                       <div className="mt-auto pt-3">
                         <div className="text-base sm:text-lg font-bold text-gray-900">{moneyFmt.format(p.price || 0)}</div>
                         
                         <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
-                          
-                          {/* Controles de cantidad agrupados */}
                           <div className="flex items-center border border-gray-200 rounded-md bg-white">
                             <button onClick={() => decrementQuantity(p.id)} className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 text-xl leading-none rounded-l-md">-</button>
                             <input
@@ -510,11 +508,9 @@ function DulceriaApp() {
                             <button onClick={() => incrementQuantity(p.id)} className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 text-xl leading-none rounded-r-md">+</button>
                           </div>
                           
-                          {/* Botón agregar adaptable */}
                           <button onClick={() => { addToCart(p, quantities[p.id] || 1); triggerConfetti(); }} className="flex-1 min-w-[80px] px-2 py-1.5 bg-pink-500 text-white rounded-md text-sm font-medium hover:bg-pink-600 transition-colors shadow-sm text-center">
                             Agregar
                           </button>
-
                         </div>
                       </div>
                     </div>
@@ -583,7 +579,7 @@ function DulceriaApp() {
         </div>
       </div>
 
-      <footer className="mt-8 sm:mt-12 py-8 bg-white border-t border-gray-200 text-center text-sm text-gray-500 space-y-4">
+      <footer className="mt-8 sm:mt-12 py-8 bg-transparent text-center text-sm text-gray-500 space-y-4">
         <div className="flex justify-center gap-6">
           <a href="https://www.facebook.com/profile.php?id=61577446754797" target="_blank" className="text-blue-600 hover:scale-110 transition-transform">
             <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
