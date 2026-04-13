@@ -1,7 +1,8 @@
 /* dulceria.jsx
    Actualizado:
-   - Botón de WhatsApp más pequeño y optimizado para móviles (responsivo).
-   - Fondo mejorado con un degradado sutil de blanco a un tono perla/gris muy claro para mayor elegancia.
+   - Soporte para múltiples imágenes por producto (separadas por coma en el Excel).
+   - Galería de imágenes (carrusel) integrada en la ventana modal al dar clic.
+   - Indicador visual (📸) en la miniatura cuando el producto tiene más de una foto.
 */
 
 const { useState, useMemo, useEffect, useRef } = React;
@@ -30,16 +31,19 @@ function slugify(text) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 }
+
 function parsePrice(v) {
   if (v == null) return 0;
   const s = String(v).trim().replace(/\s+/g, '');
   const n = parseFloat(s.replace(/[^\d.,-]/g, '').replace(',', '.'));
   return Number.isFinite(n) ? n : 0;
 }
+
 function handleImgError(e) {
   e.target.onerror = null;
   e.target.src = 'https://via.placeholder.com/600x400?text=Sin+imagen';
 }
+
 const moneyFmt = new Intl.NumberFormat('es-GT', { style: 'currency', currency: 'GTQ', maximumFractionDigits: 2 });
 
 // Componente para Animación
@@ -74,14 +78,20 @@ function FadeInOnScroll({ children, delay = 0 }) {
   );
 }
 
-// Componente Image + modal
-function ImageWithModal({ src, alt, className = 'w-[72%] max-w-[220px] h-36 mx-auto', imgClass = 'object-contain' }) {
+// Componente Image + modal (CARRUSEL INTEGRADO)
+function ImageWithModal({ src, images, alt, className = 'w-[72%] max-w-[220px] h-36 mx-auto', imgClass = 'object-contain' }) {
   const [open, setOpen] = useState(false);
   const [isShowing, setIsShowing] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Usa la lista de imágenes, o la imagen sola por defecto
+  const imgArray = images && images.length > 0 ? images : [src];
+  const currentImg = imgArray[currentIndex] || imgArray[0];
 
   useEffect(() => {
     let timeoutId;
     if (open) {
+      setCurrentIndex(0); // Empezar en la primera foto al abrir
       timeoutId = setTimeout(() => setIsShowing(true), 50);
     } else {
       setIsShowing(false);
@@ -89,32 +99,46 @@ function ImageWithModal({ src, alt, className = 'w-[72%] max-w-[220px] h-36 mx-a
     return () => clearTimeout(timeoutId);
   }, [open]);
   
-  function onKey(e) { if (e.key === 'Escape') setOpen(false); }
+  // Controlar con el teclado (Esc y Flechas)
   useEffect(() => {
+    function onKey(e) { 
+      if (e.key === 'Escape') setOpen(false); 
+      if (e.key === 'ArrowRight') setCurrentIndex(prev => (prev + 1) % imgArray.length);
+      if (e.key === 'ArrowLeft') setCurrentIndex(prev => (prev - 1 + imgArray.length) % imgArray.length);
+    }
     if (open) window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open]);
+  }, [open, imgArray.length]);
+
+  const nextImg = (e) => { e.stopPropagation(); setCurrentIndex(prev => (prev + 1) % imgArray.length); };
+  const prevImg = (e) => { e.stopPropagation(); setCurrentIndex(prev => (prev - 1 + imgArray.length) % imgArray.length); };
 
   const modalJsx = open && createPortal(
-    <div
-      role="dialog"
-      aria-modal="true"
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 p-4 transition-opacity duration-300 ease-out ${isShowing ? 'opacity-100' : 'opacity-0'}`}
-      onClick={() => setOpen(false)}
-    >
-      <div
-        className={`transform transition-all duration-300 ease-out ${isShowing ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="relative bg-black rounded max-w-[95%] max-h-[95%]">
-          <button onClick={() => setOpen(false)} aria-label="Cerrar" className="absolute top-2 right-2 z-10 rounded-full bg-black/50 text-white p-1.5 hover:bg-black/75 transition-colors">
-            <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+    <div role="dialog" aria-modal="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4 transition-opacity duration-300 ease-out ${isShowing ? 'opacity-100' : 'opacity-0'}`} onClick={() => setOpen(false)}>
+      <div className={`transform transition-all duration-300 ease-out flex flex-col items-center justify-center w-full h-full ${isShowing ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`} onClick={(e) => e.stopPropagation()}>
+        <div className="relative rounded max-w-[100%] max-h-[90%] flex items-center justify-center">
+          <button onClick={() => setOpen(false)} aria-label="Cerrar" className="absolute -top-12 right-0 md:top-0 md:-right-12 z-50 rounded-full bg-white/20 text-white p-2 hover:bg-white/40 transition-colors">
+            <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
-          <img src={src} alt={alt} onError={handleImgError} className="max-w-[95vw] max-h-[95vh] object-contain block mx-auto" />
+
+          {/* Flechas para cambiar de foto */}
+          {imgArray.length > 1 && (
+            <>
+              <button onClick={prevImg} className="absolute left-0 md:-left-16 z-50 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full shadow-lg backdrop-blur-sm">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"></path></svg>
+              </button>
+              <button onClick={nextImg} className="absolute right-0 md:-right-16 z-50 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full shadow-lg backdrop-blur-sm">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"></path></svg>
+              </button>
+              {/* Contador (ej: 1 / 3) */}
+              <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 text-white/90 text-sm font-medium tracking-widest bg-black/50 px-4 py-1.5 rounded-full z-50 backdrop-blur-sm">
+                {currentIndex + 1} / {imgArray.length}
+              </div>
+            </>
+          )}
+          <img src={currentImg} alt={alt} onError={handleImgError} className="max-w-[90vw] max-h-[80vh] object-contain block mx-auto drop-shadow-2xl transition-opacity duration-300" />
         </div>
-        <div className="text-center text-sm text-gray-200 mt-3">{alt}</div>
+        <div className="text-center text-sm font-medium text-gray-300 mt-12">{alt}</div>
       </div>
     </div>,
     document.body
@@ -122,19 +146,23 @@ function ImageWithModal({ src, alt, className = 'w-[72%] max-w-[220px] h-36 mx-a
 
   return (
     <>
-      <button
-        onClick={(e) => { e.preventDefault(); setOpen(true); }}
-        className={`block overflow-hidden bg-white/50 rounded ${className}`}
-        style={{ border: 'none', padding: 0 }}
-      >
-        <img src={src} alt={alt} loading="lazy" onError={handleImgError} className={`${imgClass} w-full h-full mix-blend-multiply`} />
+      <button onClick={(e) => { e.preventDefault(); setOpen(true); }} className={`relative block overflow-hidden bg-white/50 rounded ${className}`} style={{ border: 'none', padding: 0 }}>
+        <img src={imgArray[0]} alt={alt} loading="lazy" onError={handleImgError} className={`${imgClass} w-full h-full mix-blend-multiply`} />
+        
+        {/* Etiqueta visual de galería en la miniatura */}
+        {imgArray.length > 1 && (
+          <span className="absolute bottom-1.5 right-1.5 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shadow backdrop-blur-sm">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            {imgArray.length}
+          </span>
+        )}
       </button>
       {modalJsx}
     </>
   );
 }
 
-/* Normaliza producto */
+/* Normaliza producto (ACTUALIZADO PARA MÚLTIPLES IMÁGENES) */
 function normalizeProduct(raw, idFallback) {
   const name = (raw.name ?? raw.Nombre ?? raw.nombre ?? '').toString().trim();
   const price = parsePrice(raw.price ?? raw.Precio ?? raw.precio ?? raw.Price);
@@ -144,15 +172,26 @@ function normalizeProduct(raw, idFallback) {
   if (!subcategory) subcategory = 'Todas';
 
   let rawImage = (raw.image ?? raw.Imagen ?? raw.imagen ?? raw.Image ?? '').toString().trim();
-  let image = rawImage;
-  if (!image) {
-    image = `./src/${slugify(name)}.jpg`;
-  } else if (!/^https?:\/\//i.test(image) && !image.startsWith('./') && !image.startsWith('/')) {
-    image = image.startsWith('src/') ? `./${image}` : `./src/${image}`;
-  }
-  if (!/\.[a-zA-Z0-9]{2,5}$/.test(image) && !/^https?:\/\//i.test(image)) image = `${image}.jpg`;
 
-  return { id: raw.id ?? idFallback, name, price, short: description, description, category, subcategory, image };
+  // NUEVO: Separar por comas si hay varias imágenes
+  let imageList = rawImage ? rawImage.split(',').map(img => img.trim()).filter(Boolean) : [];
+
+  if (imageList.length === 0) {
+    imageList = [`./src/${slugify(name)}.jpg`];
+  } else {
+    // Aplicar la regla a cada foto de la lista
+    imageList = imageList.map(img => {
+      let i = img;
+      if (!/^https?:\/\//i.test(i) && !i.startsWith('./') && !i.startsWith('/')) {
+        i = i.startsWith('src/') ? `./${i}` : `./src/${i}`;
+      }
+      if (!/\.[a-zA-Z0-9]{2,5}$/.test(i) && !/^https?:\/\//i.test(i)) i = `${i}.jpg`;
+      return i;
+    });
+  }
+
+  // Retornamos 'images' (la lista completa) e 'image' (la primera para la vista previa)
+  return { id: raw.id ?? idFallback, name, price, short: description, description, category, subcategory, image: imageList[0], images: imageList };
 }
 
 /* App principal */
@@ -288,14 +327,14 @@ function DulceriaApp() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-white to-gray-100 text-gray-800">
       
-      {/* Botón Flotante (Más pequeño en móvil) */}
+      {/* Botón Flotante */}
       <a
         href="https://wa.me/50242454160?text=Hola,%20tengo%20una%20consulta%20sobre%20sus%20servicios%20para%20eventos."
         target="_blank"
         className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[60] bg-green-500 text-white px-3 py-2 sm:px-5 sm:py-3 rounded-full shadow-2xl hover:scale-105 transition-transform flex items-center justify-center gap-1.5 sm:gap-2"
         aria-label="Contactar por WhatsApp"
       >
-        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.417-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.599-3.835c1.522.902 3.222 1.387 4.953 1.388 5.417 0 9.825-4.407 9.827-9.823.001-2.624-1.022-5.091-2.882-6.951-1.859-1.86-4.322-2.883-6.941-2.883-5.418 0-9.825 4.408-9.827 9.825-.001 1.761.463 3.479 1.341 4.974l-1.003 3.665 3.754-.984zm11.103-7.514c-.301-.15-1.785-.881-2.062-.981-.278-.1-.48-.15-.682.15s-.782.981-.958 1.182c-.177.201-.354.226-.654.076-.301-.15-1.272-.469-2.422-1.494-.894-.797-1.498-1.782-1.674-2.083-.177-.301-.019-.464.132-.613.135-.134.301-.351.451-.527.151-.176.201-.301.302-.502.101-.201.05-.376-.025-.526-.075-.15-.682-1.642-.934-2.246-.246-.589-.516-.51-.682-.518-.174-.008-.374-.01-.573-.01-.2 0-.525.075-.801.376s-1.052 1.029-1.052 2.508 1.077 2.91 1.228 3.111c.151.201 2.12 3.238 5.136 4.538.718.309 1.278.494 1.714.633.721.221 1.376.19 1.894.113.578-.085 1.785-.73 2.037-1.432.252-.702.252-1.305.176-1.432-.075-.127-.278-.202-.579-.353z"/></svg>
+        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.417-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.599-3.835c1.522.902 3.222 1.387 4.953 1.388 5.417 0 9.825-4.407 9.827-9.823.001-2.624-1.022-5.091-2.882-6.951-1.859-1.86-4.322-2.883-6.941-2.883-5.418 0-9.825 4.408-9.827 9.825-.001 1.761.463 3.479 1.341 4.974l-1.003 3.665 3.754-.984zm11.103-7.514c-.301-.15-1.785-.881-2.062-.981-.278-.1-.48-.15-.682.15s-.782.981-.958 1.182c-.177.201-.354.226-.654.076-.301-.15-1.272-.469-2.422-1.494-.894-.797-1.498-1.782-1.674-2.083-.177-.301-.019-.464.132-.613.135-.134.301-.351.451-.527.151-.176.201-.301.302-.502.101-.201.05-.376-.025-.526-.075-.15-.682-1.642-.934-2.246-.246-.589-.516-.51-.682-.518-.174-.008-.374-.01-.573-.01-.573-.01-.2 0-.525.075-.801.376s-1.052 1.029-1.052 2.508 1.077 2.91 1.228 3.111c.151.201 2.12 3.238 5.136 4.538.718.309 1.278.494 1.714.633.721.221 1.376.19 1.894.113.578-.085 1.785-.73 2.037-1.432.252-.702.252-1.305.176-1.432-.075-.127-.278-.202-.579-.353z"/></svg>
         <span className="font-bold text-xs sm:text-sm">Contáctanos</span>
       </a>
 
@@ -384,7 +423,7 @@ function DulceriaApp() {
               {visibleProducts.map((p, index) => (
                 <FadeInOnScroll key={p.id} delay={index * 50}>
                   <article className="bg-white rounded shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col h-full border border-gray-100">
-                    <ImageWithModal src={p.image || `./src/${slugify(p.name)}.jpg`} alt={p.name} className="w-[72%] max-w-[220px] h-36 mx-auto mt-3" imgClass="object-contain" />
+                    <ImageWithModal src={p.image || `./src/${slugify(p.name)}.jpg`} images={p.images} alt={p.name} className="w-[72%] max-w-[220px] h-36 mx-auto mt-3" imgClass="object-contain" />
                     <div className="p-3 flex-1 flex flex-col">
                       <h3 className="font-semibold text-sm sm:text-base truncate text-gray-800">{p.name}</h3>
                       <p className="text-xs sm:text-sm text-gray-500 flex-1">{p.short || p.description}</p>
@@ -439,7 +478,7 @@ function DulceriaApp() {
           ) : (
             cart.map(p => (
               <div key={p.id} className="flex items-center gap-3">
-                <ImageWithModal src={p.image || `./src/${slugify(p.name)}.jpg`} alt={p.name} className="w-20 h-16 bg-gray-50" imgClass="object-contain mix-blend-multiply" />
+                <ImageWithModal src={p.image || `./src/${slugify(p.name)}.jpg`} images={p.images} alt={p.name} className="w-20 h-16 bg-gray-50" imgClass="object-contain mix-blend-multiply" />
                 <div className="flex-1">
                   <div className="font-semibold text-sm truncate text-gray-800">{p.name}</div>
                   <div className="text-xs text-pink-600 font-medium">{moneyFmt.format(p.price || 0)}</div>
