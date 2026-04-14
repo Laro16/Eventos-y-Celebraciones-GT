@@ -1,8 +1,13 @@
 /* dulceria.jsx
    Actualizado:
-   - Imágenes con efecto Zoom (object-cover) llenando el 100% del ancho de la tarjeta.
-   - Vista completa sin recortes al abrir la galería (modal).
-   - Fondo general "Blanco Hueso" y Botón WhatsApp original.
+   - Fondo Rosa Empolvado (#FFF0F5) para contraste perfecto.
+   - Diseño original y Botón WhatsApp.
+   - Imágenes con efecto Zoom (object-cover) y modal.
+   - Animación de scroll más fina (IntersectionObserver ajustado).
+   - Estado de carga (Loading Spinner) implementado.
+   - Etiqueta flotante (Badge) con la categoría en la imagen.
+   - Títulos de producto multilínea (line-clamp-2).
+   - Descripciones completas sin recortes (sin line-clamp).
 */
 
 const { useState, useMemo, useEffect, useRef } = React;
@@ -46,12 +51,13 @@ function handleImgError(e) {
 
 const moneyFmt = new Intl.NumberFormat('es-GT', { style: 'currency', currency: 'GTQ', maximumFractionDigits: 2 });
 
-// Componente para Animación
+// Componente para Animación (Ahora más fina)
 function FadeInOnScroll({ children, delay = 0 }) {
   const [isVisible, setIsVisible] = useState(false);
   const domRef = useRef();
 
   useEffect(() => {
+    // Configuración ajustada para animación más fina
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -59,7 +65,8 @@ function FadeInOnScroll({ children, delay = 0 }) {
           observer.unobserve(entry.target);
         }
       });
-    });
+    }, { threshold: 0.08, rootMargin: "80px" });
+    
     const currentRef = domRef.current;
     if (currentRef) {
       observer.observe(currentRef);
@@ -170,9 +177,8 @@ function ImageWithModal({ src, images, alt, className = 'w-full h-48', imgClass 
           0% { opacity: 0.2; transform: scale(0.98); }
           100% { opacity: 1; transform: scale(1); }
         }
-        .anim-fade { animation: subtleFade 0.35s ease-out forwards; }
-      `}} />
-
+        .anim-fade { animation: subtleFade 0.35s ease-out forwards; }`
+      }} />
       <div className={`transform transition-all duration-300 ease-out flex flex-col items-center justify-center w-full h-full ${isShowing ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`} onClick={(e) => e.stopPropagation()}>
         
         <div 
@@ -200,7 +206,6 @@ function ImageWithModal({ src, images, alt, className = 'w-full h-48', imgClass 
             </>
           )}
           
-          {/* Aquí forzamos object-contain para que en grande sí se vea completa */}
           <img 
             key={currentIndex} 
             src={currentImg} 
@@ -266,11 +271,16 @@ function DulceriaApp() {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Todos');
   const [visibleCount, setVisibleCount] = useState(12);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Carrito con persistencia
   const [cart, setCart] = useState(() => {
-    const saved = localStorage.getItem('eventosCart');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('eventosCart');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
   });
 
   const [customerData, setCustomerData] = useState({
@@ -313,6 +323,7 @@ function DulceriaApp() {
   useEffect(() => {
     let mounted = true;
     async function loadData() {
+      setIsLoading(true);
       try {
         const res = await fetch('./products.xlsx', { cache: 'no-store' });
         if (!res.ok) throw new Error();
@@ -322,11 +333,15 @@ function DulceriaApp() {
         const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
         if (mounted) setProducts(rows.map((r, i) => normalizeProduct(r, i + 1)));
       } catch (err) {
-        const res = await fetch('./products.json').catch(() => null);
-        if (res && res.ok) {
-          const data = await res.json();
-          if (mounted) setProducts(data.map((p, i) => normalizeProduct(p, p.id ?? i + 1)));
-        }
+        try {
+          const res = await fetch('./products.json').catch(() => null);
+          if (res && res.ok) {
+            const data = await res.json();
+            if (mounted) setProducts(data.map((p, i) => normalizeProduct(p, p.id ?? i + 1)));
+          }
+        } catch (e) {}
+      } finally {
+        if (mounted) setIsLoading(false);
       }
     }
     loadData();
@@ -401,7 +416,7 @@ function DulceriaApp() {
   }
 
   return (
-    <div className="min-h-screen text-gray-800" style={{ backgroundColor: '#F9F8F6' }}>
+    <div className="min-h-screen text-gray-800" style={{ backgroundColor: '#FFF0F5' }}>
       
       {/* Botón Flotante con diseño original WhatsApp */}
       <a
@@ -480,7 +495,14 @@ function DulceriaApp() {
 
         <section>
           <h2 className="text-lg font-semibold mb-3 text-gray-800">Productos ({filtered.length})</h2>
-          {visibleProducts.length === 0 ? (
+          
+          {/* Lógica de Spinner y Productos */}
+          {isLoading ? (
+            <div className="bg-white rounded-lg p-8 text-center shadow-sm border border-gray-100">
+              <div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-pink-200 border-t-pink-500"></div>
+              <div className="text-sm text-gray-600">Cargando productos...</div>
+            </div>
+          ) : visibleProducts.length === 0 ? (
             <div className="bg-white rounded-lg p-6 text-center shadow-sm border border-gray-100">No se encontraron productos.</div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -488,18 +510,26 @@ function DulceriaApp() {
                 <FadeInOnScroll key={p.id} delay={index * 50}>
                   <article className="bg-white rounded shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col h-full border border-gray-100">
                     
-                    {/* Tarjeta de imagen al 100% de ancho y con zoom (cover) */}
-                    <ImageWithModal 
-                      src={p.image || `./src/${slugify(p.name)}.jpg`} 
-                      images={p.images} 
-                      alt={p.name} 
-                      className="w-full h-44 sm:h-48" 
-                      imgClass="object-cover w-full h-full" 
-                    />
+                    {/* Contenedor relativo para alojar la imagen y el badge encima */}
+                    <div className="relative">
+                      <ImageWithModal 
+                        src={p.image || `./src/${slugify(p.name)}.jpg`} 
+                        images={p.images} 
+                        alt={p.name} 
+                        className="w-full h-44 sm:h-48" 
+                        imgClass="object-cover w-full h-full" 
+                      />
+                      {/* Etiqueta flotante (Badge) con la categoría */}
+                      <div className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-semibold text-gray-700 shadow-sm backdrop-blur-sm z-10">
+                        {p.category}
+                      </div>
+                    </div>
                     
                     <div className="p-3 flex-1 flex flex-col">
-                      <h3 className="font-semibold text-sm sm:text-base truncate text-gray-800">{p.name}</h3>
-                      <p className="text-xs sm:text-sm text-gray-500 flex-1">{p.short || p.description}</p>
+                      {/* Título en 2 líneas usando line-clamp-2 y forzando min-height */}
+                      <h3 className="font-semibold text-sm sm:text-base line-clamp-2 min-h-[2.5rem] text-gray-800">{p.name}</h3>
+                      {/* Descripción completa (se quitó line-clamp-3) */}
+                      <p className="text-xs sm:text-sm text-gray-500 flex-1 mt-1">{p.short || p.description}</p>
                       
                       <div className="mt-auto pt-3">
                         <div className="text-base sm:text-lg font-bold text-gray-900">{moneyFmt.format(p.price || 0)}</div>
