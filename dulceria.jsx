@@ -1,7 +1,7 @@
 /* dulceria.jsx
    Actualizado:
    - Fondo Rosa Empolvado (#FFF0F5) para contraste perfecto.
-   - Recuadro de bienvenida inicial con validación de categorías.
+   - Recuadro de bienvenida inicial con validación de categorías (4 por fila).
    - Diseño original y Botón WhatsApp.
    - Imágenes con efecto Zoom (object-cover) y modal.
    - Animación de scroll más fina (IntersectionObserver ajustado).
@@ -345,7 +345,7 @@ function DulceriaApp() {
       } finally {
         if (mounted) {
           setIsLoading(false);
-          setShowWelcome(true); // Mostrar recuadro al terminar de cargar
+          setShowWelcome(true); // Mostrar recuadro al terminar de cargar (Opción A)
         }
       }
     }
