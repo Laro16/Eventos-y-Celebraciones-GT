@@ -1,6 +1,7 @@
 /* dulceria.jsx
    Actualizado:
    - Fondo Rosa Empolvado (#FFF0F5) para contraste perfecto.
+   - Recuadro de bienvenida inicial con validación de categorías.
    - Diseño original y Botón WhatsApp.
    - Imágenes con efecto Zoom (object-cover) y modal.
    - Animación de scroll más fina (IntersectionObserver ajustado).
@@ -272,6 +273,7 @@ function DulceriaApp() {
   const [category, setCategory] = useState('Todos');
   const [visibleCount, setVisibleCount] = useState(12);
   const [isLoading, setIsLoading] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(false); // Estado para el modal de bienvenida
 
   // Carrito con persistencia
   const [cart, setCart] = useState(() => {
@@ -341,7 +343,10 @@ function DulceriaApp() {
           }
         } catch (e) {}
       } finally {
-        if (mounted) setIsLoading(false);
+        if (mounted) {
+          setIsLoading(false);
+          setShowWelcome(true); // Mostrar recuadro al terminar de cargar
+        }
       }
     }
     loadData();
@@ -353,6 +358,16 @@ function DulceriaApp() {
   function handleCategoryChange(c) {
     setCategory(c);
     triggerConfetti();
+  }
+
+  // Manejador del Recuadro de Bienvenida
+  function handleWelcomeSelection(selection) {
+    if (categories.includes(selection)) {
+      handleCategoryChange(selection);
+    } else {
+      handleCategoryChange('Todos');
+    }
+    setShowWelcome(false);
   }
 
   const filtered = useMemo(() => {
@@ -415,9 +430,33 @@ function DulceriaApp() {
     window.open(`https://wa.me/50242454160?text=${text}`, '_blank');
   }
 
+  const welcomeOptions = ["15 Años", "Boda", "Fiestas para niños", "Graduacion", "Bautizo", "Baby Shower"];
+
+  const welcomeModalJsx = showWelcome && createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl p-6 md:p-10 w-full max-w-4xl text-center">
+        <h2 className="text-2xl md:text-4xl font-extrabold text-gray-800 mb-6 md:mb-10">¿En qué evento te podemos apoyar?</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 text-center">
+          {welcomeOptions.map(opt => (
+            <button 
+              key={opt}
+              onClick={() => handleWelcomeSelection(opt)}
+              className="bg-pink-50 hover:bg-pink-500 hover:text-white text-pink-700 font-bold py-4 md:py-6 px-2 rounded-xl transition-colors shadow-sm border border-pink-200 text-sm md:text-base flex items-center justify-center"
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+
   return (
     <div className="min-h-screen text-gray-800" style={{ backgroundColor: '#FFF0F5' }}>
       
+      {welcomeModalJsx}
+
       {/* Botón Flotante con diseño original WhatsApp */}
       <a
         href="https://wa.me/50242454160?text=Hola,%20tengo%20una%20consulta%20sobre%20sus%20servicios%20para%20eventos."
