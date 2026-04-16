@@ -1,16 +1,45 @@
 /* dulceria.jsx
    Actualizado:
+   - Sonido de "Burbuja/Pop" suave (Web Audio API) en botones principales.
    - Fondo Rosa Empolvado (#FFF0F5) y dulces flotantes animados.
-   - Recuadro de bienvenida dinámico (toma las categorías reales, sin "Todos").
-   - Contenedores blanco sólido (sin transparencias) para lectura perfecta.
-   - Botones con gradiente y diseño compacto (texto de botón más pequeño y sin recorte).
+   - Recuadro de bienvenida dinámico (toma las categorías reales de la barra superior).
+   - Emojis automáticos en las opciones del recuadro de bienvenida.
+   - Filtro secundario ajustado para leer las Subcategorías del Excel.
+   - Botón "Agregar" corregido (sin corte de texto, letra más pequeña).
+   - Contenedores blanco sólido.
    - Diseño original y Botón WhatsApp.
-   - Imágenes con efecto Zoom (object-cover) y modal.
-   - Estado de carga (Loading Spinner).
 */
 
 const { useState, useMemo, useEffect, useRef } = React;
 const { createPortal } = ReactDOM;
+
+// Helper para sonido suave de "pop/burbuja" (sin archivos externos)
+function playBubbleSound() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.type = 'sine';
+    // Frecuencia que sube ligeramente para dar efecto de "burbuja"
+    osc.frequency.setValueAtTime(400, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.08);
+
+    // Volumen bajito (0.15) que se desvanece rápido
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.08);
+  } catch (e) {
+    // Si el navegador bloquea el audio (pasa si el usuario no ha interactuado), lo ignoramos suavemente
+  }
+}
 
 // Helper para el efecto de dulces al hacer click
 function triggerConfetti() {
@@ -283,12 +312,13 @@ function ImageWithModal({ src, images, alt, className = 'w-full h-48', imgClass 
   );
 }
 
-/* Normaliza producto */
+/* Normaliza producto - EXTRACCION DE SUBCATEGORIA MANTENIDA */
 function normalizeProduct(raw, idFallback) {
   const name = (raw.name ?? raw.Nombre ?? raw.nombre ?? '').toString().trim();
   const price = parsePrice(raw.price ?? raw.Precio ?? raw.precio ?? raw.Price);
   const description = (raw.description ?? raw.Descripcion ?? raw.descripcion ?? raw.short ?? '').toString();
   const category = (raw.category ?? raw.Categoria ?? raw.categoria ?? 'Sin categoría').toString().trim();
+  const subcategoria = (raw.subcategory ?? raw.Subcategoria ?? raw.subcategoria ?? '').toString().trim();
 
   let rawImage = (raw.image ?? raw.Imagen ?? raw.imagen ?? raw.Image ?? '').toString().trim();
 
@@ -307,7 +337,22 @@ function normalizeProduct(raw, idFallback) {
     });
   }
 
-  return { id: raw.id ?? idFallback, name, price, short: description, description, category, image: imageList[0], images: imageList };
+  return { id: raw.id ?? idFallback, name, price, short: description, description, category, subcategoria, image: imageList[0], images: imageList };
+}
+
+/* Helper para obtener emojis según categoría */
+function getEmojiForCategory(categoryName, index) {
+  const common = {
+    '15': '👑', 'quince': '👑', 'boda': '💍', 'matrimonio': '🥂', 
+    'niño': '🎈', 'niña': '🎈', 'infantil': '🧸', 'graduacion': '🎓', 
+    'bautizo': '🕊️', 'baby shower': '🍼', 'cumple': '🎂'
+  };
+  const key = categoryName.toLowerCase();
+  for (let k in common) {
+    if (key.includes(k)) return common[k];
+  }
+  const fallbacks = ['✨', '🎉', '🎊', '🥳', '💖', '🌟'];
+  return fallbacks[index % fallbacks.length];
 }
 
 /* App principal */
@@ -315,9 +360,10 @@ function DulceriaApp() {
   const [products, setProducts] = useState([]);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Todos');
+  const [subCategory, setSubCategory] = useState('Todas');
   const [visibleCount, setVisibleCount] = useState(12);
   const [isLoading, setIsLoading] = useState(true);
-  const [showWelcome, setShowWelcome] = useState(false); // Estado para el modal de bienvenida
+  const [showWelcome, setShowWelcome] = useState(false);
 
   // Carrito con persistencia
   const [cart, setCart] = useState(() => {
@@ -345,7 +391,7 @@ function DulceriaApp() {
     localStorage.setItem('eventosCart', JSON.stringify(cart));
   }, [cart]);
 
-  // Funciones para abrir y cerrar carrito integradas con botón Atrás
+  // Funciones para abrir y cerrar carrito
   const openCart = () => {
     setCartOpen(true);
     window.history.pushState({ cartOpen: true }, '');
@@ -389,7 +435,7 @@ function DulceriaApp() {
       } finally {
         if (mounted) {
           setIsLoading(false);
-          setShowWelcome(true); // Mostrar recuadro al terminar de cargar
+          setShowWelcome(true); 
         }
       }
     }
@@ -399,19 +445,24 @@ function DulceriaApp() {
 
   const categories = useMemo(() => ['Todos', ...new Set(products.map(p => p.category))], [products]);
 
+  // Extraemos dinámicamente las subcategorías
+  const availableSubcategories = useMemo(() => {
+    const currentProds = category === 'Todos' ? products : products.filter(p => p.category === category);
+    const subs = currentProds.map(p => p.subcategoria).filter(Boolean);
+    return ['Todas', ...new Set(subs)];
+  }, [products, category]);
+
   function handleCategoryChange(c) {
+    playBubbleSound(); // Sonido al cambiar categoría
     setCategory(c);
+    setSubCategory('Todas'); 
     triggerConfetti();
   }
 
-  // Manejador del Recuadro de Bienvenida
   function handleWelcomeSelection(selection) {
-    const categoryExists = categories.some(
-      c => c.toLowerCase() === selection.toLowerCase()
-    );
-
-    if (categoryExists) {
-      const exactCategoryName = categories.find(c => c.toLowerCase() === selection.toLowerCase());
+    playBubbleSound(); // Sonido al hacer clic en recuadro principal
+    const exactCategoryName = categories.find(c => c.toLowerCase() === selection.toLowerCase());
+    if (exactCategoryName) {
       handleCategoryChange(exactCategoryName);
     } else {
       handleCategoryChange('Todos');
@@ -423,8 +474,9 @@ function DulceriaApp() {
     const q = query.toLowerCase();
     return products
       .filter(p => (category === 'Todos' || p.category === category))
-      .filter(p => (p.name + p.category).toLowerCase().includes(q));
-  }, [products, category, query]);
+      .filter(p => (subCategory === 'Todas' || p.subcategoria === subCategory))
+      .filter(p => (p.name + p.category + (p.subcategoria||'')).toLowerCase().includes(q));
+  }, [products, category, subCategory, query]);
 
   const visibleProducts = filtered.slice(0, visibleCount);
 
@@ -479,21 +531,21 @@ function DulceriaApp() {
     window.open(`https://wa.me/50242454160?text=${text}`, '_blank');
   }
 
-  // EXCLUSIVO RECUADRO: Filtramos "Todos" para mostrar dinámicamente las categorías disponibles
   const welcomeOptions = categories.filter(c => c !== 'Todos');
 
   const welcomeModalJsx = showWelcome && createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-2xl p-6 md:p-10 w-full max-w-5xl text-center">
-        <h2 className="text-2xl md:text-4xl font-extrabold text-gray-800 mb-6 md:mb-10">¿En qué evento te podemos apoyar?</h2>
+        <h2 className="text-2xl md:text-4xl font-extrabold text-gray-800 mb-6 md:mb-10">¡Qué alegría verte por aquí! ✨<br/><span className="text-pink-500">¿Qué estamos celebrando hoy? 🎉</span></h2>
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 md:gap-5 text-center">
-          {welcomeOptions.map(opt => (
+          {welcomeOptions.map((opt, i) => (
             <button 
               key={opt}
               onClick={() => handleWelcomeSelection(opt)}
-              className="bg-pink-50 hover:bg-pink-500 hover:text-white text-pink-700 font-bold py-4 md:py-6 px-2 rounded-xl transition-colors shadow-sm border border-pink-200 text-sm md:text-base flex items-center justify-center"
+              className="bg-pink-50 hover:bg-pink-500 hover:text-white text-pink-700 font-bold py-4 md:py-6 px-2 rounded-xl transition-colors shadow-sm border border-pink-200 text-sm md:text-base flex flex-col items-center justify-center gap-2"
             >
-              {opt}
+              <span className="text-2xl md:text-3xl">{getEmojiForCategory(opt, i)}</span>
+              <span>{opt}</span>
             </button>
           ))}
         </div>
@@ -577,8 +629,8 @@ function DulceriaApp() {
                 <input aria-label="Buscar productos" value={query} onChange={e => setQuery(e.target.value)} className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:border-pink-300 focus:outline-none" placeholder="Buscar por nombre o categoría..." />
               </div>
               <div className="flex flex-wrap gap-2 items-center justify-end">
-                <select value={category} onChange={e => handleCategoryChange(e.target.value)} className="border border-gray-200 rounded px-3 py-2 text-sm w-full md:w-auto focus:outline-none">
-                  {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                <select value={subCategory} onChange={e => { setSubCategory(e.target.value); playBubbleSound(); }} className="border border-gray-200 rounded px-3 py-2 text-sm w-full md:w-auto focus:outline-none">
+                  {availableSubcategories.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
             </div>
@@ -607,7 +659,7 @@ function DulceriaApp() {
                           src={p.image || `./src/${slugify(p.name)}.jpg`} 
                           images={p.images} 
                           alt={p.name} 
-                          className="w-full h-40 sm:h-44" /* <-- Imagen compacta */
+                          className="w-full h-40 sm:h-44" 
                           imgClass="object-cover w-full h-full" 
                         />
                         <div className="absolute left-2 top-2 rounded-full bg-white/95 px-2 py-1 text-[9px] uppercase tracking-wider font-bold text-pink-600 shadow-sm backdrop-blur-sm z-10">
@@ -635,8 +687,7 @@ function DulceriaApp() {
                               <button onClick={() => incrementQuantity(p.id)} className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-pink-600 hover:bg-pink-50 text-lg rounded-r-lg transition-colors">+</button>
                             </div>
                             
-                            {/* EXCLUSIVO BOTON: Modificado texto más pequeño y sin clase truncate */}
-                            <button onClick={() => { addToCart(p, quantities[p.id] || 1); triggerConfetti(); }} className="flex-1 min-w-0 px-1.5 py-1.5 bg-gradient-to-r from-pink-500 to-rose-400 text-white rounded-lg text-[11px] sm:text-xs font-bold hover:from-pink-600 hover:to-rose-500 transition-all shadow-sm text-center">
+                            <button onClick={() => { playBubbleSound(); addToCart(p, quantities[p.id] || 1); triggerConfetti(); }} className="flex-1 min-w-0 px-1.5 py-1.5 bg-gradient-to-r from-pink-500 to-rose-400 text-white rounded-lg text-[10px] sm:text-[11px] font-bold hover:from-pink-600 hover:to-rose-500 transition-all shadow-sm text-center leading-tight">
                               Agregar
                             </button>
                           </div>
@@ -694,7 +745,7 @@ function DulceriaApp() {
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center border border-gray-200 rounded-md">
-                     <button onClick={() => updateQty(p.id, p.qty - 1)} className="px-2 py-1 leading-none border-r border-gray-200 hover:bg-gray-50 text-gray-600">-</button>
+                     <button onClick={() => { playBubbleSound(); updateQty(p.id, p.qty - 1); }} className="px-2 py-1 leading-none border-r border-gray-200 hover:bg-gray-50 text-gray-600">-</button>
                      <input
                        type="text"
                        inputMode="numeric"
@@ -702,9 +753,9 @@ function DulceriaApp() {
                        onChange={e => updateQty(p.id, e.target.value)}
                        className="w-10 text-center border-none text-sm bg-transparent outline-none"
                      />
-                     <button onClick={() => updateQty(p.id, p.qty + 1)} className="px-2 py-1 leading-none border-l border-gray-200 hover:bg-gray-50 text-gray-600">+</button>
+                     <button onClick={() => { playBubbleSound(); updateQty(p.id, p.qty + 1); }} className="px-2 py-1 leading-none border-l border-gray-200 hover:bg-gray-50 text-gray-600">+</button>
                   </div>
-                  <button onClick={() => removeFromCart(p.id)} className="text-sm text-red-400 hover:text-red-500 transition-colors">🗑️</button>
+                  <button onClick={() => { playBubbleSound(); removeFromCart(p.id); }} className="text-sm text-red-400 hover:text-red-500 transition-colors">🗑️</button>
                 </div>
               </div>
             ))
