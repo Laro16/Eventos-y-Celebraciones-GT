@@ -1,20 +1,18 @@
 /* dulceria.jsx
    Actualizado:
-   - Fondo Rosa Empolvado (#FFF0F5) para contraste perfecto.
-   - Recuadro de bienvenida inicial con validación de categorías (4 por fila).
+   - Fondo Rosa Empolvado (#FFF0F5) y dulces flotantes animados.
+   - Recuadro de bienvenida inicial con validación de categorías.
+   - Contenedores blanco sólido (sin transparencias) para lectura perfecta.
+   - Botones con gradiente y diseño compacto.
    - Diseño original y Botón WhatsApp.
    - Imágenes con efecto Zoom (object-cover) y modal.
-   - Animación de scroll más fina (IntersectionObserver ajustado).
-   - Estado de carga (Loading Spinner) implementado.
-   - Etiqueta flotante (Badge) con la categoría en la imagen.
-   - Títulos de producto multilínea (line-clamp-2).
-   - Descripciones completas sin recortes (sin line-clamp).
+   - Estado de carga (Loading Spinner).
 */
 
 const { useState, useMemo, useEffect, useRef } = React;
 const { createPortal } = ReactDOM;
 
-// Helper para el efecto de dulces
+// Helper para el efecto de dulces al hacer click
 function triggerConfetti() {
   if (window.confetti) {
     window.confetti({
@@ -52,13 +50,59 @@ function handleImgError(e) {
 
 const moneyFmt = new Intl.NumberFormat('es-GT', { style: 'currency', currency: 'GTQ', maximumFractionDigits: 2 });
 
-// Componente para Animación (Ahora más fina)
+/* =====================================================================
+   COMPONENTE: Fondo Animado con Dulces Flotantes
+===================================================================== */
+function FloatingBackground() {
+  const particles = useMemo(() => {
+    const items = ['🍬', '🍭', '🎈', '🧁', '🍩', '🍫', '✨', '🎉'];
+    return Array.from({ length: 18 }).map((_, i) => ({
+      id: i,
+      emoji: items[i % items.length],
+      left: `${Math.random() * 100}%`,
+      animationDuration: `${15 + Math.random() * 25}s`,
+      animationDelay: `-${Math.random() * 30}s`, 
+      fontSize: `${1.2 + Math.random()}rem`,
+      horizontalSway: Math.random() > 0.5 ? 1 : -1
+    }));
+  }, []);
+
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes floatUpAndSway {
+          0% { transform: translateY(110vh) translateX(0px) rotate(0deg); opacity: 0; }
+          10% { opacity: 0.35; }
+          90% { opacity: 0.35; }
+          100% { transform: translateY(-10vh) translateX(var(--sway)) rotate(360deg); opacity: 0; }
+        }
+        .candy-float {
+          position: absolute;
+          top: 0;
+          animation: floatUpAndSway linear infinite;
+        }
+      `}} />
+      {particles.map(p => (
+        <div key={p.id} className="candy-float drop-shadow-md" style={{
+          left: p.left,
+          animationDuration: p.animationDuration,
+          animationDelay: p.animationDelay,
+          fontSize: p.fontSize,
+          '--sway': `${p.horizontalSway * 50}px`
+        }}>
+          {p.emoji}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Componente para Animación
 function FadeInOnScroll({ children, delay = 0 }) {
   const [isVisible, setIsVisible] = useState(false);
   const domRef = useRef();
 
   useEffect(() => {
-    // Configuración ajustada para animación más fina
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -78,7 +122,7 @@ function FadeInOnScroll({ children, delay = 0 }) {
   return (
     <div
       ref={domRef}
-      className={`transition-all duration-500 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+      className={`transition-all duration-500 ease-out ${isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-6 scale-95'}`}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}
@@ -225,10 +269,10 @@ function ImageWithModal({ src, images, alt, className = 'w-full h-48', imgClass 
   return (
     <>
       <button onClick={openModal} className={`relative block overflow-hidden bg-gray-50 flex-shrink-0 ${className}`} style={{ border: 'none', padding: 0 }}>
-        <img src={imgArray[0]} alt={alt} loading="lazy" onError={handleImgError} className={`${imgClass} transition-transform duration-500 hover:scale-105`} />
+        <img src={imgArray[0]} alt={alt} loading="lazy" onError={handleImgError} className={`${imgClass} transition-transform duration-700 hover:scale-105`} />
         
         {imgArray.length > 1 && (
-          <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shadow backdrop-blur-sm">
+          <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shadow backdrop-blur-sm z-10">
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
             {imgArray.length}
           </span>
@@ -345,7 +389,7 @@ function DulceriaApp() {
       } finally {
         if (mounted) {
           setIsLoading(false);
-          setShowWelcome(true); // Mostrar recuadro al terminar de cargar (Opción A)
+          setShowWelcome(true); // Mostrar recuadro al terminar de cargar
         }
       }
     }
@@ -362,8 +406,13 @@ function DulceriaApp() {
 
   // Manejador del Recuadro de Bienvenida
   function handleWelcomeSelection(selection) {
-    if (categories.includes(selection)) {
-      handleCategoryChange(selection);
+    const categoryExists = categories.some(
+      c => c.toLowerCase() === selection.toLowerCase()
+    );
+
+    if (categoryExists) {
+      const exactCategoryName = categories.find(c => c.toLowerCase() === selection.toLowerCase());
+      handleCategoryChange(exactCategoryName);
     } else {
       handleCategoryChange('Todos');
     }
@@ -434,9 +483,9 @@ function DulceriaApp() {
 
   const welcomeModalJsx = showWelcome && createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-6 md:p-10 w-full max-w-4xl text-center">
+      <div className="bg-white rounded-2xl shadow-2xl p-6 md:p-10 w-full max-w-5xl text-center">
         <h2 className="text-2xl md:text-4xl font-extrabold text-gray-800 mb-6 md:mb-10">¿En qué evento te podemos apoyar?</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 text-center">
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 md:gap-5 text-center">
           {welcomeOptions.map(opt => (
             <button 
               key={opt}
@@ -453,160 +502,175 @@ function DulceriaApp() {
   );
 
   return (
-    <div className="min-h-screen text-gray-800" style={{ backgroundColor: '#FFF0F5' }}>
+    <div className="min-h-screen text-gray-800 relative bg-[#FFF0F5] overflow-hidden">
       
       {welcomeModalJsx}
+      <FloatingBackground />
 
-      {/* Botón Flotante con diseño original WhatsApp */}
-      <a
-        href="https://wa.me/50242454160?text=Hola,%20tengo%20una%20consulta%20sobre%20sus%20servicios%20para%20eventos."
-        target="_blank"
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[60] text-white px-3 py-2 sm:px-5 sm:py-3 rounded-full shadow-2xl hover:scale-105 transition-transform flex items-center justify-center gap-1.5 sm:gap-2"
-        style={{ backgroundColor: '#25D366' }}
-        aria-label="Contactar por WhatsApp"
-      >
-        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M12.031 0C5.385 0 0 5.384 0 12.031c0 2.128.552 4.195 1.6 6.015L.231 24l6.096-1.599a11.957 11.957 0 005.704 1.442h.005c6.645 0 12.028-5.385 12.028-12.032C24.064 5.387 18.679 0 12.031 0zm0 21.849h-.003c-1.802 0-3.568-.484-5.116-1.401l-.367-.217-3.803.997.997-3.71-.238-.379A10.016 10.016 0 012.006 12.03c0-5.529 4.5-10.026 10.027-10.026 5.527 0 10.025 4.5 10.025 10.027 0 5.53-4.5 10.018-10.027 10.018zm5.503-7.518c-.301-.151-1.785-.881-2.062-.981-.278-.1-.481-.151-.682.151-.202.302-.782.981-.958 1.182-.176.202-.353.226-.654.076-.301-.151-1.272-.469-2.422-1.494-.894-.797-1.498-1.782-1.674-2.083-.177-.302-.02-.464.132-.614.134-.134.301-.351.451-.527.151-.176.202-.302.302-.502.101-.202.05-.376-.025-.526-.075-.151-.682-1.642-.934-2.246-.246-.589-.516-.51-.682-.518-.174-.008-.374-.01-.573-.01-.2 0-.525.075-.801.376s-1.052 1.029-1.052 2.508 1.077 2.91 1.228 3.111c.151.202 2.12 3.238 5.136 4.538.718.309 1.278.494 1.714.633.721.221 1.376.19 1.894.113.578-.085 1.785-.73 2.037-1.432.252-.702.252-1.305.176-1.432-.075-.127-.278-.202-.579-.353z"/>
-        </svg>
-        <span className="font-bold text-xs sm:text-sm">Contáctanos</span>
-      </a>
+      <div className="relative z-10 flex flex-col min-h-screen">
+        {/* Botón Flotante con diseño original WhatsApp */}
+        <a
+          href="https://wa.me/50242454160?text=Hola,%20tengo%20una%20consulta%20sobre%20sus%20servicios%20para%20eventos."
+          target="_blank"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[60] text-white px-3 py-2 sm:px-5 sm:py-3 rounded-full shadow-2xl hover:scale-105 transition-transform flex items-center justify-center gap-1.5 sm:gap-2"
+          style={{ backgroundColor: '#25D366' }}
+          aria-label="Contactar por WhatsApp"
+        >
+          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12.031 0C5.385 0 0 5.384 0 12.031c0 2.128.552 4.195 1.6 6.015L.231 24l6.096-1.599a11.957 11.957 0 005.704 1.442h.005c6.645 0 12.028-5.385 12.028-12.032C24.064 5.387 18.679 0 12.031 0zm0 21.849h-.003c-1.802 0-3.568-.484-5.116-1.401l-.367-.217-3.803.997.997-3.71-.238-.379A10.016 10.016 0 012.006 12.03c0-5.529 4.5-10.026 10.027-10.026 5.527 0 10.025 4.5 10.025 10.027 0 5.53-4.5 10.018-10.027 10.018zm5.503-7.518c-.301-.151-1.785-.881-2.062-.981-.278-.1-.481-.151-.682.151-.202.302-.782.981-.958 1.182-.176.202-.353.226-.654.076-.301-.151-1.272-.469-2.422-1.494-.894-.797-1.498-1.782-1.674-2.083-.177-.302-.02-.464.132-.614.134-.134.301-.351.451-.527.151-.176.202-.302.302-.502.101-.202.05-.376-.025-.526-.075-.151-.682-1.642-.934-2.246-.246-.589-.516-.51-.682-.518-.174-.008-.374-.01-.573-.01-.2 0-.525.075-.801.376s-1.052 1.029-1.052 2.508 1.077 2.91 1.228 3.111c.151.202 2.12 3.238 5.136 4.538.718.309 1.278.494 1.714.633.721.221 1.376.19 1.894.113.578-.085 1.785-.73 2.037-1.432.252-.702.252-1.305.176-1.432-.075-.127-.278-.202-.579-.353z"/>
+          </svg>
+          <span className="font-bold text-xs sm:text-sm">Contáctanos</span>
+        </a>
 
-      {/* Header fijo */}
-      <header className="bg-white/90 backdrop-blur-md shadow-sm sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
-          <a href="./" className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0 no-underline text-current">
-            <div className="flex-shrink-0">
-              <img src="./src/logo.png" alt="Logo" onLoad={() => setLogoVisible(true)} onError={(e) => { setLogoVisible(false); e.target.style.display = 'none'; }} className="h-10 sm:h-12 object-contain" style={{ display: logoVisible ? 'block' : 'none' }} />
-            </div>
-            {!logoVisible && <div className="text-xl font-bold select-none">Eventos y Celebraciones GT</div>}
-            <div className="truncate hidden sm:block">
-              <div className="text-sm sm:text-lg font-semibold truncate">Eventos y Celebraciones GT</div>
-              <div className="text-xs text-gray-500 truncate">De todo para tu fiesta</div>
-            </div>
-          </a>
+        {/* Header sólido en blanco */}
+        <header className="bg-white shadow-sm sticky top-0 z-50">
+          <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
+            <a href="./" className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0 no-underline text-current">
+              <div className="flex-shrink-0">
+                <img src="./src/logo.png" alt="Logo" onLoad={() => setLogoVisible(true)} onError={(e) => { setLogoVisible(false); e.target.style.display = 'none'; }} className="h-10 sm:h-12 object-contain" style={{ display: logoVisible ? 'block' : 'none' }} />
+              </div>
+              {!logoVisible && <div className="text-xl font-bold select-none">Eventos y Celebraciones GT</div>}
+              <div className="truncate hidden sm:block">
+                <div className="text-sm sm:text-lg font-semibold truncate">Eventos y Celebraciones GT</div>
+                <div className="text-xs text-gray-500 truncate">De todo para tu fiesta</div>
+              </div>
+            </a>
 
-          <nav className="flex-grow min-w-0 md:hidden">
-            <div className="flex items-center overflow-x-auto whitespace-nowrap scrollbar-hide">
-              {categories.map(c => (
-                <button key={c} className={`px-3 py-2 rounded text-sm flex-shrink-0 ${category === c ? 'bg-pink-100 text-pink-700' : 'hover:bg-gray-100'}`} onClick={() => handleCategoryChange(c)}>
-                  {c}
-                </button>
-              ))}
-            </div>
-          </nav>
-
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <nav className="hidden md:flex gap-3 items-center mr-2">
-              {categories.map(c => (
-                <button key={c} className={`px-3 py-2 rounded ${category === c ? 'bg-pink-100 text-pink-700' : 'hover:bg-gray-100'}`} onClick={() => handleCategoryChange(c)}>
-                  {c}
-                </button>
-              ))}
+            <nav className="flex-grow min-w-0 md:hidden">
+              <div className="flex items-center overflow-x-auto whitespace-nowrap scrollbar-hide">
+                {categories.map(c => (
+                  <button key={c} className={`px-3 py-2 rounded text-sm flex-shrink-0 ${category === c ? 'bg-pink-100 text-pink-700' : 'hover:bg-gray-100'}`} onClick={() => handleCategoryChange(c)}>
+                    {c}
+                  </button>
+                ))}
+              </div>
             </nav>
-            <button onClick={openCart} className="relative p-2 rounded-md bg-white hover:bg-gray-50 border border-gray-100 shadow-sm" aria-label="Abrir carrito">
-              <img src="./src/carrito.png" alt="Carrito" onLoad={() => setCartImgVisible(true)} onError={(e) => { setCartImgVisible(false); e.target.style.display = 'none'; }} className="h-6 w-6 object-contain" style={{ display: cartImgVisible ? 'block' : 'none' }} />
-              {!cartImgVisible && (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4" />
-                </svg>
-              )}
-              {cart.length > 0 && <span className="absolute -right-2 -top-2 bg-pink-600 text-white text-xs rounded-full px-1.5">{cart.length}</span>}
-            </button>
-          </div>
-        </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4" style={{ paddingTop: 8 }}>
-        
-        <section className="bg-white rounded-lg p-3 sm:p-4 shadow-sm mb-4 border border-gray-100">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="flex items-center gap-2">
-              <input aria-label="Buscar productos" value={query} onChange={e => setQuery(e.target.value)} className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:border-pink-300 focus:outline-none" placeholder="Buscar por nombre o categoría..." />
-            </div>
-            <div className="flex flex-wrap gap-2 items-center justify-end">
-              <select value={category} onChange={e => handleCategoryChange(e.target.value)} className="border border-gray-200 rounded px-3 py-2 text-sm w-full md:w-auto focus:outline-none">
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <nav className="hidden md:flex gap-3 items-center mr-2">
+                {categories.map(c => (
+                  <button key={c} className={`px-3 py-2 rounded ${category === c ? 'bg-pink-100 text-pink-700' : 'hover:bg-gray-100'}`} onClick={() => handleCategoryChange(c)}>
+                    {c}
+                  </button>
+                ))}
+              </nav>
+              <button onClick={openCart} className="relative p-2 rounded-md bg-white hover:bg-gray-50 border border-gray-100 shadow-sm" aria-label="Abrir carrito">
+                <img src="./src/carrito.png" alt="Carrito" onLoad={() => setCartImgVisible(true)} onError={(e) => { setCartImgVisible(false); e.target.style.display = 'none'; }} className="h-6 w-6 object-contain" style={{ display: cartImgVisible ? 'block' : 'none' }} />
+                {!cartImgVisible && (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4" />
+                  </svg>
+                )}
+                {cart.length > 0 && <span className="absolute -right-2 -top-2 bg-pink-600 text-white text-xs rounded-full px-1.5">{cart.length}</span>}
+              </button>
             </div>
           </div>
-        </section>
+        </header>
 
-        <section>
-          <h2 className="text-lg font-semibold mb-3 text-gray-800">Productos ({filtered.length})</h2>
+        {/* Main Content */}
+        <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4 flex-grow" style={{ paddingTop: 8 }}>
           
-          {/* Lógica de Spinner y Productos */}
-          {isLoading ? (
-            <div className="bg-white rounded-lg p-8 text-center shadow-sm border border-gray-100">
-              <div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-pink-200 border-t-pink-500"></div>
-              <div className="text-sm text-gray-600">Cargando productos...</div>
+          <section className="bg-white rounded-lg p-3 sm:p-4 shadow-sm mb-4 border border-gray-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="flex items-center gap-2">
+                <input aria-label="Buscar productos" value={query} onChange={e => setQuery(e.target.value)} className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:border-pink-300 focus:outline-none" placeholder="Buscar por nombre o categoría..." />
+              </div>
+              <div className="flex flex-wrap gap-2 items-center justify-end">
+                <select value={category} onChange={e => handleCategoryChange(e.target.value)} className="border border-gray-200 rounded px-3 py-2 text-sm w-full md:w-auto focus:outline-none">
+                  {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
             </div>
-          ) : visibleProducts.length === 0 ? (
-            <div className="bg-white rounded-lg p-6 text-center shadow-sm border border-gray-100">No se encontraron productos.</div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {visibleProducts.map((p, index) => (
-                <FadeInOnScroll key={p.id} delay={index * 50}>
-                  <article className="bg-white rounded shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col h-full border border-gray-100">
-                    
-                    {/* Contenedor relativo para alojar la imagen y el badge encima */}
-                    <div className="relative">
-                      <ImageWithModal 
-                        src={p.image || `./src/${slugify(p.name)}.jpg`} 
-                        images={p.images} 
-                        alt={p.name} 
-                        className="w-full h-44 sm:h-48" 
-                        imgClass="object-cover w-full h-full" 
-                      />
-                      {/* Etiqueta flotante (Badge) con la categoría */}
-                      <div className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-semibold text-gray-700 shadow-sm backdrop-blur-sm z-10">
-                        {p.category}
-                      </div>
-                    </div>
-                    
-                    <div className="p-3 flex-1 flex flex-col">
-                      {/* Título en 2 líneas usando line-clamp-2 y forzando min-height */}
-                      <h3 className="font-semibold text-sm sm:text-base line-clamp-2 min-h-[2.5rem] text-gray-800">{p.name}</h3>
-                      {/* Descripción completa (se quitó line-clamp-3) */}
-                      <p className="text-xs sm:text-sm text-gray-500 flex-1 mt-1">{p.short || p.description}</p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold mb-3 text-gray-800">Productos ({filtered.length})</h2>
+            
+            {/* Lógica de Spinner y Productos */}
+            {isLoading ? (
+              <div className="bg-white rounded-lg p-8 text-center shadow-sm border border-gray-100">
+                <div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-pink-200 border-t-pink-500"></div>
+                <div className="text-sm text-gray-600">Cargando productos...</div>
+              </div>
+            ) : visibleProducts.length === 0 ? (
+              <div className="bg-white rounded-lg p-6 text-center shadow-sm border border-gray-100">No se encontraron productos.</div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {visibleProducts.map((p, index) => (
+                  <FadeInOnScroll key={p.id} delay={index * 50}>
+                    {/* TARJETA COMPACTA Y BLANCA SÓLIDA */}
+                    <article className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col h-full border border-gray-100 hover:-translate-y-1">
                       
-                      <div className="mt-auto pt-3">
-                        <div className="text-base sm:text-lg font-bold text-gray-900">{moneyFmt.format(p.price || 0)}</div>
-                        
-                        <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
-                          <div className="flex items-center border border-gray-200 rounded-md bg-white">
-                            <button onClick={() => decrementQuantity(p.id)} className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 text-xl leading-none rounded-l-md">-</button>
-                            <input
-                              type="text"
-                              inputMode="numeric"
-                              value={quantities[p.id] || 1}
-                              onChange={(e) => handleQuantityChange(p.id, e.target.value)}
-                              className="w-8 text-center text-sm font-medium bg-transparent outline-none border-x border-gray-200"
-                            />
-                            <button onClick={() => incrementQuantity(p.id)} className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-50 text-xl leading-none rounded-r-md">+</button>
-                          </div>
-                          
-                          <button onClick={() => { addToCart(p, quantities[p.id] || 1); triggerConfetti(); }} className="flex-1 min-w-[80px] px-2 py-1.5 bg-pink-500 text-white rounded-md text-sm font-medium hover:bg-pink-600 transition-colors shadow-sm text-center">
-                            Agregar
-                          </button>
+                      <div className="relative">
+                        <ImageWithModal 
+                          src={p.image || `./src/${slugify(p.name)}.jpg`} 
+                          images={p.images} 
+                          alt={p.name} 
+                          className="w-full h-40 sm:h-44" /* <-- Imagen compacta */
+                          imgClass="object-cover w-full h-full" 
+                        />
+                        <div className="absolute left-2 top-2 rounded-full bg-white/95 px-2 py-1 text-[9px] uppercase tracking-wider font-bold text-pink-600 shadow-sm backdrop-blur-sm z-10">
+                          {p.category}
                         </div>
                       </div>
-                    </div>
-                  </article>
-                </FadeInOnScroll>
-              ))}
-            </div>
-          )}
-          {visibleCount < filtered.length && (
-            <div className="mt-6 text-center">
-              <button onClick={() => { setVisibleCount(v => v + 12); triggerConfetti(); }} className="px-5 py-2.5 bg-white border border-gray-200 shadow-sm rounded-full text-gray-700 font-medium hover:bg-gray-50 transition-colors">Cargar más</button>
-            </div>
-          )}
-        </section>
-      </main>
+                      
+                      <div className="p-3 flex flex-col h-full">
+                        <h3 className="font-bold text-sm sm:text-base line-clamp-2 text-gray-800 leading-tight">{p.name}</h3>
+                        <p className="text-[11px] sm:text-xs text-gray-500 mt-1 mb-2 leading-relaxed">{p.short || p.description}</p>
+                        
+                        <div className="mt-auto">
+                          <div className="text-base sm:text-lg font-extrabold text-gray-900 mb-2">{moneyFmt.format(p.price || 0)}</div>
+                          
+                          <div className="flex items-center justify-between gap-1.5">
+                            <div className="flex items-center border border-gray-200 rounded-lg bg-white shadow-sm">
+                              <button onClick={() => decrementQuantity(p.id)} className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-pink-600 hover:bg-pink-50 text-lg rounded-l-lg transition-colors">-</button>
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                value={quantities[p.id] || 1}
+                                onChange={(e) => handleQuantityChange(p.id, e.target.value)}
+                                className="w-6 text-center text-xs font-bold text-gray-700 bg-transparent outline-none border-x border-gray-100"
+                              />
+                              <button onClick={() => incrementQuantity(p.id)} className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-pink-600 hover:bg-pink-50 text-lg rounded-r-lg transition-colors">+</button>
+                            </div>
+                            
+                            <button onClick={() => { addToCart(p, quantities[p.id] || 1); triggerConfetti(); }} className="flex-1 min-w-0 px-2 py-1.5 bg-gradient-to-r from-pink-500 to-rose-400 text-white rounded-lg text-xs sm:text-sm font-bold hover:from-pink-600 hover:to-rose-500 transition-all shadow-sm text-center truncate">
+                              Agregar
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  </FadeInOnScroll>
+                ))}
+              </div>
+            )}
+            {visibleCount < filtered.length && (
+              <div className="mt-6 text-center">
+                <button onClick={() => { setVisibleCount(v => v + 12); triggerConfetti(); }} className="px-5 py-2.5 bg-white border border-gray-200 shadow-sm rounded-full text-gray-700 font-medium hover:bg-gray-50 transition-colors">Cargar más</button>
+              </div>
+            )}
+          </section>
+        </main>
+
+        <footer className="mt-8 sm:mt-12 py-8 bg-transparent text-center text-sm text-gray-500 space-y-4">
+          <div className="flex justify-center gap-6">
+            <a href="https://www.facebook.com/profile.php?id=61577446754797" target="_blank" className="text-blue-600 hover:scale-110 transition-transform">
+              <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </a>
+            <a href="https://www.instagram.com/eventosycelebracionesgt/" target="_blank" className="text-pink-600 hover:scale-110 transition-transform">
+              <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 448 512"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg>
+            </a>
+            <a href="https://www.tiktok.com/@eventosycelebraci" target="_blank" className="text-black hover:scale-110 transition-transform">
+              <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 448 512"><path d="M448 209.91a210.06 210.06 0 0 1-122.77-39.25V349.38A162.55 162.55 0 1 1 185 188.31V278.2a74.62 74.62 0 1 0 52.23 71.18V0l88 0a121.18 121.18 0 0 0 1.86 22.17A122.18 122.18 0 0 0 381 102.39a121.4 121.4 0 0 0 67 20.14z"/></svg>
+            </a>
+          </div>
+          <div>© {new Date().getFullYear()} Eventos y Celebraciones GT — Hecho con cariño</div>
+        </footer>
+      </div>
 
       {/* Carrito lateral */}
-      <div className={`fixed top-0 right-0 h-full w-full md:w-96 bg-white shadow-2xl transform ${cartOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform`} style={{ zIndex: 60 }}>
+      <div className={`fixed top-0 right-0 h-full w-full md:w-96 bg-white shadow-2xl transform ${cartOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 ease-in-out`} style={{ zIndex: 100 }}>
         <div className="p-4 border-b flex items-center justify-between bg-white">
           <h3 className="text-lg font-bold text-gray-800">Tu carrito</h3>
           <div className="flex items-center gap-2">
@@ -656,21 +720,6 @@ function DulceriaApp() {
           <button onClick={() => { openWhatsApp(); triggerConfetti(); }} className="w-full px-4 py-3 bg-green-500 hover:bg-green-600 transition-colors text-white rounded-lg mb-2 text-sm font-bold shadow-md">Ordenar por WhatsApp</button>
         </div>
       </div>
-
-      <footer className="mt-8 sm:mt-12 py-8 bg-transparent text-center text-sm text-gray-500 space-y-4">
-        <div className="flex justify-center gap-6">
-          <a href="https://www.facebook.com/profile.php?id=61577446754797" target="_blank" className="text-blue-600 hover:scale-110 transition-transform">
-            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-          </a>
-          <a href="https://www.instagram.com/eventosycelebracionesgt/" target="_blank" className="text-pink-600 hover:scale-110 transition-transform">
-            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 448 512"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg>
-          </a>
-          <a href="https://www.tiktok.com/@eventosycelebraci" target="_blank" className="text-black hover:scale-110 transition-transform">
-            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 448 512"><path d="M448 209.91a210.06 210.06 0 0 1-122.77-39.25V349.38A162.55 162.55 0 1 1 185 188.31V278.2a74.62 74.62 0 1 0 52.23 71.18V0l88 0a121.18 121.18 0 0 0 1.86 22.17A122.18 122.18 0 0 0 381 102.39a121.4 121.4 0 0 0 67 20.14z"/></svg>
-          </a>
-        </div>
-        <div>© {new Date().getFullYear()} Eventos y Celebraciones GT — Hecho con cariño</div>
-      </footer>
     </div>
   );
 }
