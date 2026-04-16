@@ -1,9 +1,9 @@
 /* dulceria.jsx
    Actualizado:
    - Fondo Rosa Empolvado (#FFF0F5) y dulces flotantes animados.
-   - Recuadro de bienvenida inicial con validación de categorías.
+   - Recuadro de bienvenida dinámico (toma las categorías reales, sin "Todos").
    - Contenedores blanco sólido (sin transparencias) para lectura perfecta.
-   - Botones con gradiente y diseño compacto.
+   - Botones con gradiente y diseño compacto (texto de botón más pequeño y sin recorte).
    - Diseño original y Botón WhatsApp.
    - Imágenes con efecto Zoom (object-cover) y modal.
    - Estado de carga (Loading Spinner).
@@ -269,10 +269,10 @@ function ImageWithModal({ src, images, alt, className = 'w-full h-48', imgClass 
   return (
     <>
       <button onClick={openModal} className={`relative block overflow-hidden bg-gray-50 flex-shrink-0 ${className}`} style={{ border: 'none', padding: 0 }}>
-        <img src={imgArray[0]} alt={alt} loading="lazy" onError={handleImgError} className={`${imgClass} transition-transform duration-700 hover:scale-105`} />
+        <img src={imgArray[0]} alt={alt} loading="lazy" onError={handleImgError} className={`${imgClass} transition-transform duration-500 hover:scale-105`} />
         
         {imgArray.length > 1 && (
-          <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shadow backdrop-blur-sm z-10">
+          <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shadow backdrop-blur-sm">
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
             {imgArray.length}
           </span>
@@ -479,7 +479,8 @@ function DulceriaApp() {
     window.open(`https://wa.me/50242454160?text=${text}`, '_blank');
   }
 
-  const welcomeOptions = ["15 Años", "Boda", "Fiestas para niños", "Graduacion", "Bautizo", "Baby Shower"];
+  // EXCLUSIVO RECUADRO: Filtramos "Todos" para mostrar dinámicamente las categorías disponibles
+  const welcomeOptions = categories.filter(c => c !== 'Todos');
 
   const welcomeModalJsx = showWelcome && createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
@@ -634,7 +635,8 @@ function DulceriaApp() {
                               <button onClick={() => incrementQuantity(p.id)} className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-pink-600 hover:bg-pink-50 text-lg rounded-r-lg transition-colors">+</button>
                             </div>
                             
-                            <button onClick={() => { addToCart(p, quantities[p.id] || 1); triggerConfetti(); }} className="flex-1 min-w-0 px-2 py-1.5 bg-gradient-to-r from-pink-500 to-rose-400 text-white rounded-lg text-xs sm:text-sm font-bold hover:from-pink-600 hover:to-rose-500 transition-all shadow-sm text-center truncate">
+                            {/* EXCLUSIVO BOTON: Modificado texto más pequeño y sin clase truncate */}
+                            <button onClick={() => { addToCart(p, quantities[p.id] || 1); triggerConfetti(); }} className="flex-1 min-w-0 px-1.5 py-1.5 bg-gradient-to-r from-pink-500 to-rose-400 text-white rounded-lg text-[11px] sm:text-xs font-bold hover:from-pink-600 hover:to-rose-500 transition-all shadow-sm text-center">
                               Agregar
                             </button>
                           </div>
