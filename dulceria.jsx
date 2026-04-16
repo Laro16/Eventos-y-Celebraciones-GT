@@ -1,16 +1,20 @@
 /* dulceria.jsx
    Actualizado:
-   - Validación de carrito: Nombre y Fecha obligatorios para WhatsApp.
-   - Soporte para etiquetas "Agotado" y "Nuevo" desde columna "Estado" del Excel.
-   - Fondo ultrasuave (#FFF8FA) y dulces flotantes.
-   - Sonido de "Burbuja" y Recuadro de bienvenida dinámico.
-   - Botón "Agregar" pequeño para evitar cortes de texto.
+   - Validación del Carrito antes de enviar a WhatsApp.
+   - Etiquetas "Agotado" y "Nuevo" y botón desactivado según Excel.
+   - Fondo Rosa Ultrasuave (#FFF8FA) y dulces flotantes animados.
+   - Recuadro de bienvenida dinámico (toma las categorías reales de la barra superior).
+   - Emojis automáticos en las opciones del recuadro de bienvenida.
+   - Filtro secundario ajustado para leer las Subcategorías del Excel.
+   - Botón "Agregar" corregido (sin corte de texto, letra más pequeña).
+   - Contenedores blanco sólido.
+   - Diseño original y Botón WhatsApp.
 */
 
 const { useState, useMemo, useEffect, useRef } = React;
 const { createPortal } = ReactDOM;
 
-// Helper para sonido suave de "pop/burbuja"
+// Helper para sonido suave de "pop/burbuja" (sin archivos externos)
 function playBubbleSound() {
   try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -18,19 +22,27 @@ function playBubbleSound() {
     const ctx = new AudioContext();
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
+    
     osc.connect(gain);
     gain.connect(ctx.destination);
+
     osc.type = 'sine';
+    // Frecuencia que sube ligeramente para dar efecto de "burbuja"
     osc.frequency.setValueAtTime(400, ctx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.08);
+
+    // Volumen bajito (0.15) que se desvanece rápido
     gain.gain.setValueAtTime(0.15, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
+
     osc.start(ctx.currentTime);
     osc.stop(ctx.currentTime + 0.08);
-  } catch (e) {}
+  } catch (e) {
+    // Si el navegador bloquea el audio, lo ignoramos suavemente
+  }
 }
 
-// Helper para confeti
+// Helper para el efecto de dulces al hacer click
 function triggerConfetti() {
   if (window.confetti) {
     window.confetti({
@@ -45,7 +57,13 @@ function triggerConfetti() {
 
 /* Helpers */
 function slugify(text) {
-  return String(text || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/ñ/g, 'n').replace(/Ñ/g, 'n').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  return String(text || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/ñ/g, 'n').replace(/Ñ/g, 'n')
+    .toLowerCase().trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }
 
 function parsePrice(v) {
@@ -62,7 +80,9 @@ function handleImgError(e) {
 
 const moneyFmt = new Intl.NumberFormat('es-GT', { style: 'currency', currency: 'GTQ', maximumFractionDigits: 2 });
 
-/* Fondo Animado */
+/* =====================================================================
+   COMPONENTE: Fondo Animado con Dulces Flotantes
+===================================================================== */
 function FloatingBackground() {
   const particles = useMemo(() => {
     const items = ['🍬', '🍭', '🎈', '🧁', '🍩', '🍫', '✨', '🎉'];
@@ -76,6 +96,7 @@ function FloatingBackground() {
       horizontalSway: Math.random() > 0.5 ? 1 : -1
     }));
   }, []);
+
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
       <style dangerouslySetInnerHTML={{ __html: `
@@ -85,10 +106,20 @@ function FloatingBackground() {
           90% { opacity: 0.35; }
           100% { transform: translateY(-10vh) translateX(var(--sway)) rotate(360deg); opacity: 0; }
         }
-        .candy-float { position: absolute; top: 0; animation: floatUpAndSway linear infinite; }
+        .candy-float {
+          position: absolute;
+          top: 0;
+          animation: floatUpAndSway linear infinite;
+        }
       `}} />
       {particles.map(p => (
-        <div key={p.id} className="candy-float drop-shadow-md" style={{ left: p.left, animationDuration: p.animationDuration, animationDelay: p.animationDelay, fontSize: p.fontSize, '--sway': `${p.horizontalSway * 50}px` }}>
+        <div key={p.id} className="candy-float drop-shadow-md" style={{
+          left: p.left,
+          animationDuration: p.animationDuration,
+          animationDelay: p.animationDelay,
+          fontSize: p.fontSize,
+          '--sway': `${p.horizontalSway * 50}px`
+        }}>
           {p.emoji}
         </div>
       ))}
@@ -96,128 +127,348 @@ function FloatingBackground() {
   );
 }
 
+// Componente para Animación
 function FadeInOnScroll({ children, delay = 0 }) {
   const [isVisible, setIsVisible] = useState(false);
   const domRef = useRef();
+
   useEffect(() => {
     const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => { if (entry.isIntersecting) { setIsVisible(true); observer.unobserve(entry.target); } });
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
+      });
     }, { threshold: 0.08, rootMargin: "80px" });
-    if (domRef.current) observer.observe(domRef.current);
-    return () => { if (domRef.current) observer.unobserve(domRef.current); };
+    
+    const currentRef = domRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+    return () => { if (currentRef) observer.unobserve(currentRef); };
   }, []);
+
   return (
-    <div ref={domRef} className={`transition-all duration-500 ease-out ${isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-6 scale-95'}`} style={{ transitionDelay: `${delay}ms` }}>
+    <div
+      ref={domRef}
+      className={`transition-all duration-500 ease-out ${isVisible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-6 scale-95'}`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
       {children}
     </div>
   );
 }
 
+// Componente Image + modal
 function ImageWithModal({ src, images, alt, className = 'w-full h-48', imgClass = 'object-cover w-full h-full' }) {
   const [open, setOpen] = useState(false);
   const [isShowing, setIsShowing] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+
   const imgArray = images && images.length > 0 ? images : [src];
   const currentImg = imgArray[currentIndex] || imgArray[0];
 
-  const openModal = (e) => { e.preventDefault(); setOpen(true); window.history.pushState({ modalOpen: true }, ''); };
-  const closeModal = () => { setOpen(false); if (window.history.state && window.history.state.modalOpen) window.history.back(); };
-  
+  const openModal = (e) => {
+    e.preventDefault();
+    setOpen(true);
+    window.history.pushState({ modalOpen: true }, '');
+  };
+
+  const closeModal = () => {
+    setOpen(false);
+    if (window.history.state && window.history.state.modalOpen) {
+      window.history.back();
+    }
+  };
+
   useEffect(() => {
-    const handlePopState = () => { if (open) setOpen(false); };
+    const handlePopState = () => {
+      if (open) setOpen(false);
+    };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [open]);
 
   useEffect(() => {
-    if (open) setTimeout(() => setIsShowing(true), 50);
-    else setIsShowing(false);
+    let timeoutId;
+    if (open) {
+      setCurrentIndex(0);
+      timeoutId = setTimeout(() => setIsShowing(true), 50);
+    } else {
+      setIsShowing(false);
+    }
+    return () => clearTimeout(timeoutId);
   }, [open]);
   
+  const nextImg = (e) => { 
+    if (e) e.stopPropagation(); 
+    setCurrentIndex(prev => (prev + 1) % imgArray.length); 
+  };
+  const prevImg = (e) => { 
+    if (e) e.stopPropagation(); 
+    setCurrentIndex(prev => (prev - 1 + imgArray.length) % imgArray.length); 
+  };
+
+  useEffect(() => {
+    function onKey(e) { 
+      if (e.key === 'Escape') closeModal(); 
+      if (e.key === 'ArrowRight') nextImg();
+      if (e.key === 'ArrowLeft') prevImg();
+    }
+    if (open) window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, imgArray.length]);
+
+  const minSwipeDistance = 40; 
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && imgArray.length > 1) nextImg();
+    if (isRightSwipe && imgArray.length > 1) prevImg();
+  };
+
   const modalJsx = open && createPortal(
-    <div className={`fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 transition-opacity duration-300 ${isShowing ? 'opacity-100' : 'opacity-0'}`} onClick={closeModal}>
-      <div className={`transform transition-all duration-300 ${isShowing ? 'scale-100' : 'scale-95'}`} onClick={(e) => e.stopPropagation()}>
-        <img src={currentImg} alt={alt} onError={handleImgError} className="max-w-[95vw] max-h-[80vh] object-contain drop-shadow-2xl" />
-        <div className="text-center text-sm text-gray-300 mt-4">{alt}</div>
+    <div role="dialog" aria-modal="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 p-4 transition-opacity duration-300 ease-out ${isShowing ? 'opacity-100' : 'opacity-0'}`} onClick={closeModal}>
+      
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes subtleFade {
+          0% { opacity: 0.2; transform: scale(0.98); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+        .anim-fade { animation: subtleFade 0.35s ease-out forwards; }`
+      }} />
+      <div className={`transform transition-all duration-300 ease-out flex flex-col items-center justify-center w-full h-full ${isShowing ? 'scale-100 opacity-100' : 'scale-95 opacity-0'}`} onClick={(e) => e.stopPropagation()}>
+        
+        <div 
+          className="relative rounded max-w-[100%] max-h-[85%] flex items-center justify-center w-full touch-pan-y"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+        >
+          <button onClick={closeModal} aria-label="Cerrar" className="absolute -top-12 right-2 md:top-0 md:-right-12 z-50 rounded-full bg-white/20 text-white p-2 hover:bg-white/40 transition-colors">
+            <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+
+          {imgArray.length > 1 && (
+            <>
+              <button onClick={prevImg} className="absolute left-2 md:-left-16 z-50 bg-black/60 hover:bg-black/80 text-white p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-transform hover:scale-110">
+                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M15 19l-7-7 7-7"></path></svg>
+              </button>
+              <button onClick={nextImg} className="absolute right-2 md:-right-16 z-50 bg-black/60 hover:bg-black/80 text-white p-2 md:p-3 rounded-full shadow-lg backdrop-blur-sm transition-transform hover:scale-110">
+                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7"></path></svg>
+              </button>
+
+              <div className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 text-white/90 text-sm font-medium tracking-widest bg-black/50 px-4 py-1.5 rounded-full z-50 backdrop-blur-sm">
+                {currentIndex + 1} / {imgArray.length}
+              </div>
+            </>
+          )}
+          
+          <img 
+            key={currentIndex} 
+            src={currentImg} 
+            alt={alt} 
+            onError={handleImgError} 
+            draggable="false"
+            className="anim-fade max-w-[95vw] max-h-[80vh] object-contain block mx-auto drop-shadow-2xl select-none" 
+          />
+        </div>
+        <div className="text-center text-sm font-medium text-gray-300 mt-10 md:mt-12 px-4 select-none">{alt}</div>
       </div>
-    </div>, document.body
+    </div>,
+    document.body
   );
 
   return (
     <>
-      <button onClick={openModal} className={`relative block overflow-hidden bg-gray-50 ${className}`} style={{ border: 'none', padding: 0 }}>
-        <img src={imgArray[0]} alt={alt} loading="lazy" onError={handleImgError} className={`${imgClass} transition-transform duration-700 hover:scale-110`} />
+      <button onClick={openModal} className={`relative block overflow-hidden bg-gray-50 flex-shrink-0 ${className}`} style={{ border: 'none', padding: 0 }}>
+        <img src={imgArray[0]} alt={alt} loading="lazy" onError={handleImgError} className={`${imgClass} transition-transform duration-500 hover:scale-105`} />
+        
+        {imgArray.length > 1 && (
+          <span className="absolute bottom-2 right-2 bg-black/60 text-white text-[10px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shadow backdrop-blur-sm">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            {imgArray.length}
+          </span>
+        )}
       </button>
       {modalJsx}
     </>
   );
 }
 
+/* Normaliza producto - INCLUYE LECTURA DEL EXCEL INTACTA Y NUEVO "ESTADO" */
 function normalizeProduct(raw, idFallback) {
   const name = (raw.name ?? raw.Nombre ?? raw.nombre ?? '').toString().trim();
   const price = parsePrice(raw.price ?? raw.Precio ?? raw.precio ?? raw.Price);
   const description = (raw.description ?? raw.Descripcion ?? raw.descripcion ?? raw.short ?? '').toString();
   const category = (raw.category ?? raw.Categoria ?? raw.categoria ?? 'Sin categoría').toString().trim();
   const subcategoria = (raw.subcategory ?? raw.Subcategoria ?? raw.subcategoria ?? '').toString().trim();
-  const estado = (raw.estado ?? raw.Estado ?? '').toString().trim().toLowerCase(); // LEER ESTADO
+  const estado = (raw.estado ?? raw.Estado ?? '').toString().trim().toLowerCase(); // Extraemos "Agotado" o "Nuevo"
 
   let rawImage = (raw.image ?? raw.Imagen ?? raw.imagen ?? raw.Image ?? '').toString().trim();
+
   let imageList = rawImage ? rawImage.split(',').map(img => img.trim()).filter(Boolean) : [];
-  if (imageList.length === 0) imageList = [`./src/${slugify(name)}.jpg`];
+
+  if (imageList.length === 0) {
+    imageList = [`./src/${slugify(name)}.jpg`];
+  } else {
+    imageList = imageList.map(img => {
+      let i = img;
+      if (!/^https?:\/\//i.test(i) && !i.startsWith('./') && !i.startsWith('/')) {
+        i = i.startsWith('src/') ? `./${i}` : `./src/${i}`;
+      }
+      if (!/\.[a-zA-Z0-9]{2,5}$/.test(i) && !/^https?:\/\//i.test(i)) i = `${i}.jpg`;
+      return i;
+    });
+  }
 
   return { id: raw.id ?? idFallback, name, price, short: description, description, category, subcategoria, estado, image: imageList[0], images: imageList };
 }
 
+/* Helper para obtener emojis según categoría */
 function getEmojiForCategory(categoryName, index) {
-  const common = { '15': '👑', 'boda': '💍', 'niño': '🎈', 'graduacion': '🎓', 'bautizo': '🕊️', 'baby': '🍼', 'cumple': '🎂' };
+  const common = {
+    '15': '👑', 'quince': '👑', 'boda': '💍', 'matrimonio': '🥂', 
+    'niño': '🎈', 'niña': '🎈', 'infantil': '🧸', 'graduacion': '🎓', 
+    'bautizo': '🕊️', 'baby shower': '🍼', 'cumple': '🎂'
+  };
   const key = categoryName.toLowerCase();
-  for (let k in common) { if (key.includes(k)) return common[k]; }
-  return ['✨', '🎉', '🎊', '🥳'][index % 4];
+  for (let k in common) {
+    if (key.includes(k)) return common[k];
+  }
+  const fallbacks = ['✨', '🎉', '🎊', '🥳', '💖', '🌟'];
+  return fallbacks[index % fallbacks.length];
 }
 
+/* App principal */
 function DulceriaApp() {
   const [products, setProducts] = useState([]);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('Todos');
   const [subCategory, setSubCategory] = useState('Todas');
+  const [visibleCount, setVisibleCount] = useState(12);
   const [isLoading, setIsLoading] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
-  const [cart, setCart] = useState(() => JSON.parse(localStorage.getItem('eventosCart') || '[]'));
-  const [customerData, setCustomerData] = useState({ nombre: '', direccion: '', fecha: '' });
+
+  // Carrito con persistencia
+  const [cart, setCart] = useState(() => {
+    try {
+      const saved = localStorage.getItem('eventosCart');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const [customerData, setCustomerData] = useState({
+    nombre: '',
+    direccion: '',
+    fecha: ''
+  });
+
   const [cartOpen, setCartOpen] = useState(false);
   const [quantities, setQuantities] = useState({});
   const [logoVisible, setLogoVisible] = useState(true);
+  const [cartImgVisible, setCartImgVisible] = useState(true);
 
-  useEffect(() => { localStorage.setItem('eventosCart', JSON.stringify(cart)); }, [cart]);
+  // Guardar carrito automáticamente
+  useEffect(() => {
+    localStorage.setItem('eventosCart', JSON.stringify(cart));
+  }, [cart]);
 
-  const openCart = () => { setCartOpen(true); window.history.pushState({ cartOpen: true }, ''); };
-  const closeCart = () => { setCartOpen(false); if (window.history.state?.cartOpen) window.history.back(); };
+  // Funciones para abrir y cerrar carrito integradas con botón Atrás
+  const openCart = () => {
+    setCartOpen(true);
+    window.history.pushState({ cartOpen: true }, '');
+  };
+
+  const closeCart = () => {
+    setCartOpen(false);
+    if (window.history.state && window.history.state.cartOpen) {
+      window.history.back();
+    }
+  };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (cartOpen) setCartOpen(false);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [cartOpen]);
 
   useEffect(() => {
     let mounted = true;
     async function loadData() {
+      setIsLoading(true);
       try {
         const res = await fetch('./products.xlsx', { cache: 'no-store' });
+        if (!res.ok) throw new Error();
         const ab = await res.arrayBuffer();
         const workbook = XLSX.read(ab, { type: 'array' });
-        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
-        if (mounted) { setProducts(rows.map((r, i) => normalizeProduct(r, i + 1))); setIsLoading(false); setShowWelcome(true); }
-      } catch (e) { setIsLoading(false); }
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        if (mounted) setProducts(rows.map((r, i) => normalizeProduct(r, i + 1)));
+      } catch (err) {
+        try {
+          const res = await fetch('./products.json').catch(() => null);
+          if (res && res.ok) {
+            const data = await res.json();
+            if (mounted) setProducts(data.map((p, i) => normalizeProduct(p, p.id ?? i + 1)));
+          }
+        } catch (e) {}
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+          setShowWelcome(true); 
+        }
+      }
     }
     loadData();
     return () => { mounted = false; };
   }, []);
 
   const categories = useMemo(() => ['Todos', ...new Set(products.map(p => p.category))], [products]);
+
+  // Extraemos dinámicamente las subcategorías
   const availableSubcategories = useMemo(() => {
     const currentProds = category === 'Todos' ? products : products.filter(p => p.category === category);
-    return ['Todas', ...new Set(currentProds.map(p => p.subcategoria).filter(Boolean))];
+    const subs = currentProds.map(p => p.subcategoria).filter(Boolean);
+    return ['Todas', ...new Set(subs)];
   }, [products, category]);
 
-  function handleCategoryChange(c) { playBubbleSound(); setCategory(c); setSubCategory('Todas'); triggerConfetti(); }
+  function handleCategoryChange(c) {
+    playBubbleSound();
+    setCategory(c);
+    setSubCategory('Todas'); 
+    triggerConfetti();
+  }
+
   function handleWelcomeSelection(selection) {
-    const exact = categories.find(c => c.toLowerCase() === selection.toLowerCase());
-    handleCategoryChange(exact || 'Todos');
+    playBubbleSound();
+    const exactCategoryName = categories.find(c => c.toLowerCase() === selection.toLowerCase());
+    if (exactCategoryName) {
+      handleCategoryChange(exactCategoryName);
+    } else {
+      handleCategoryChange('Todos');
+    }
     setShowWelcome(false);
   }
 
@@ -229,165 +480,332 @@ function DulceriaApp() {
       .filter(p => (p.name + p.category + (p.subcategoria||'')).toLowerCase().includes(q));
   }, [products, category, subCategory, query]);
 
+  const visibleProducts = filtered.slice(0, visibleCount);
+
+  function handleQuantityChange(productId, qty) {
+    const newQty = Math.max(1, Number(qty) || 1);
+    setQuantities(prev => ({ ...prev, [productId]: newQty }));
+  }
+
+  function incrementQuantity(productId) {
+    const currentQty = quantities[productId] || 1;
+    handleQuantityChange(productId, currentQty + 1);
+  }
+
+  function decrementQuantity(productId) {
+    const currentQty = quantities[productId] || 1;
+    handleQuantityChange(productId, currentQty - 1);
+  }
+
   function addToCart(product, qtyToAdd) {
-    if (product.estado === 'agotado') return; // Seguridad extra
+    // Si está agotado, bloqueamos la acción por seguridad extra
+    if (product.estado === 'agotado') return;
+    
     setCart(prev => {
       const found = prev.find(x => x.id === product.id);
-      if (found) return prev.map(x => x.id === product.id ? { ...x, qty: x.qty + qtyToAdd } : x);
+      if (found) {
+        return prev.map(x => x.id === product.id ? { ...x, qty: x.qty + qtyToAdd } : x);
+      }
       return [...prev, { ...product, qty: qtyToAdd }];
     });
   }
 
+  function updateQty(id, qty) { setCart(prev => prev.map(p => p.id === id ? { ...p, qty: Math.max(1, Number(qty) || 1) } : p)); }
+  function removeFromCart(id) { setCart(prev => prev.filter(p => p.id !== id)); }
+
   const subtotal = cart.reduce((s, p) => s + (p.price || 0) * p.qty, 0);
+  const total = subtotal;
 
-  /* VALIDACION DE CARRITO ANTES DE WHATSAPP */
-  function openWhatsApp() {
-    if (cart.length === 0) return alert('El carrito está vacío.');
-    if (!customerData.nombre.trim()) return alert('Por favor, ingresa tu nombre.');
-    if (!customerData.fecha) return alert('Por favor, selecciona la fecha de tu evento.');
-
-    let lines = ['*Pedido - Eventos y Celebraciones GT* 📝\n', `👤 *Cliente:* ${customerData.nombre}`, `📅 *Fecha Evento:* ${customerData.fecha}`];
+  function generateWhatsAppMessage() {
+    let lines = ['*Pedido - Eventos y Celebraciones GT* 📝\n'];
+    if (customerData.nombre) lines.push(`👤 *Cliente:* ${customerData.nombre}`);
+    if (customerData.fecha) lines.push(`📅 *Fecha Evento:* ${customerData.fecha}`);
     if (customerData.direccion) lines.push(`📍 *Dirección:* ${customerData.direccion}`);
-    lines.push('\n--- *Detalle* ---');
+    lines.push('\n--- *Detalle del Pedido* ---');
     cart.forEach(p => lines.push(`• ${p.qty} x ${p.name} (${moneyFmt.format(p.price * p.qty)})`));
-    lines.push(`\n💰 *Total:* ${moneyFmt.format(subtotal)}`);
-    window.open(`https://wa.me/50242454160?text=${encodeURIComponent(lines.join('\n'))}`, '_blank');
+    lines.push(`\n💰 *Total:* ${moneyFmt.format(total)}`);
+    return encodeURIComponent(lines.join('\n'));
+  }
+
+  function openWhatsApp() {
+    if (cart.length === 0) {
+      return alert('El carrito está vacío.');
+    }
+    
+    // NUEVA VALIDACIÓN
+    if (!customerData.nombre.trim()) {
+      return alert('¡Hola! Por favor, dinos tu nombre antes de enviar el pedido.');
+    }
+    if (!customerData.fecha) {
+      return alert('¡Casi listo! Por favor, selecciona la fecha de tu evento.');
+    }
+
+    const text = generateWhatsAppMessage();
+    window.open(`https://wa.me/50242454160?text=${text}`, '_blank');
   }
 
   const welcomeOptions = categories.filter(c => c !== 'Todos');
 
+  const welcomeModalJsx = showWelcome && createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+      <div className="bg-white rounded-2xl shadow-2xl p-6 md:p-10 w-full max-w-5xl text-center">
+        <h2 className="text-2xl md:text-4xl font-extrabold text-gray-800 mb-6 md:mb-10">¡Qué alegría verte por aquí! ✨<br/><span className="text-pink-500">¿Qué estamos celebrando hoy? 🎉</span></h2>
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 md:gap-5 text-center">
+          {welcomeOptions.map((opt, i) => (
+            <button 
+              key={opt}
+              onClick={() => handleWelcomeSelection(opt)}
+              className="bg-pink-50 hover:bg-pink-500 hover:text-white text-pink-700 font-bold py-4 md:py-6 px-2 rounded-xl transition-colors shadow-sm border border-pink-200 text-sm md:text-base flex flex-col items-center justify-center gap-2"
+            >
+              <span className="text-2xl md:text-3xl">{getEmojiForCategory(opt, i)}</span>
+              <span>{opt}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+
   return (
     <div className="min-h-screen text-gray-800 relative bg-[#FFF8FA] overflow-hidden">
-      {showWelcome && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 md:p-10 w-full max-w-5xl text-center">
-            <h2 className="text-2xl md:text-4xl font-extrabold text-gray-800 mb-6 md:mb-10">¡Qué alegría verte! ✨<br/><span className="text-pink-500">¿Qué celebramos hoy? 🎉</span></h2>
-            <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
-              {welcomeOptions.map((opt, i) => (
-                <button key={opt} onClick={() => handleWelcomeSelection(opt)} className="bg-pink-50 hover:bg-pink-500 hover:text-white text-pink-700 font-bold py-4 rounded-xl transition-colors border border-pink-200 flex flex-col items-center gap-2">
-                  <span className="text-2xl">{getEmojiForCategory(opt, i)}</span>
-                  <span className="text-xs md:text-sm">{opt}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>, document.body
-      )}
+      
+      {welcomeModalJsx}
       <FloatingBackground />
 
       <div className="relative z-10 flex flex-col min-h-screen">
+        {/* Botón Flotante con diseño original WhatsApp */}
+        <a
+          href="https://wa.me/50242454160?text=Hola,%20tengo%20una%20consulta%20sobre%20sus%20servicios%20para%20eventos."
+          target="_blank"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[60] text-white px-3 py-2 sm:px-5 sm:py-3 rounded-full shadow-2xl hover:scale-105 transition-transform flex items-center justify-center gap-1.5 sm:gap-2"
+          style={{ backgroundColor: '#25D366' }}
+          aria-label="Contactar por WhatsApp"
+        >
+          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12.031 0C5.385 0 0 5.384 0 12.031c0 2.128.552 4.195 1.6 6.015L.231 24l6.096-1.599a11.957 11.957 0 005.704 1.442h.005c6.645 0 12.028-5.385 12.028-12.032C24.064 5.387 18.679 0 12.031 0zm0 21.849h-.003c-1.802 0-3.568-.484-5.116-1.401l-.367-.217-3.803.997.997-3.71-.238-.379A10.016 10.016 0 012.006 12.03c0-5.529 4.5-10.026 10.027-10.026 5.527 0 10.025 4.5 10.025 10.027 0 5.53-4.5 10.018-10.027 10.018zm5.503-7.518c-.301-.151-1.785-.881-2.062-.981-.278-.1-.481-.151-.682.151-.202.302-.782.981-.958 1.182-.176.202-.353.226-.654.076-.301-.151-1.272-.469-2.422-1.494-.894-.797-1.498-1.782-1.674-2.083-.177-.302-.02-.464.132-.614.134-.134.301-.351.451-.527.151-.176.202-.302.302-.502.101-.202.05-.376-.025-.526-.075-.151-.682-1.642-.934-2.246-.246-.589-.516-.51-.682-.518-.174-.008-.374-.01-.573-.01-.2 0-.525.075-.801.376s-1.052 1.029-1.052 2.508 1.077 2.91 1.228 3.111c.151.202 2.12 3.238 5.136 4.538.718.309 1.278.494 1.714.633.721.221 1.376.19 1.894.113.578-.085 1.785-.73 2.037-1.432.252-.702.252-1.305.176-1.432-.075-.127-.278-.202-.579-.353z"/>
+          </svg>
+          <span className="font-bold text-xs sm:text-sm">Contáctanos</span>
+        </a>
+
+        {/* Header sólido en blanco */}
         <header className="bg-white shadow-sm sticky top-0 z-50">
-          <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-            <a href="./" className="flex items-center gap-3 no-underline text-current">
-              <img src="./src/logo.png" alt="Logo" className="h-10 sm:h-12 object-contain" />
-              <div className="hidden sm:block">
-                <div className="text-lg font-bold">Eventos y Celebraciones GT</div>
-                <div className="text-xs text-gray-500">De todo para tu fiesta</div>
+          <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
+            <a href="./" className="flex items-center gap-2 sm:gap-3 min-w-0 flex-shrink-0 no-underline text-current">
+              <div className="flex-shrink-0">
+                <img src="./src/logo.png" alt="Logo" onLoad={() => setLogoVisible(true)} onError={(e) => { setLogoVisible(false); e.target.style.display = 'none'; }} className="h-10 sm:h-12 object-contain" style={{ display: logoVisible ? 'block' : 'none' }} />
+              </div>
+              {!logoVisible && <div className="text-xl font-bold select-none">Eventos y Celebraciones GT</div>}
+              <div className="truncate hidden sm:block">
+                <div className="text-sm sm:text-lg font-semibold truncate">Eventos y Celebraciones GT</div>
+                <div className="text-xs text-gray-500 truncate">De todo para tu fiesta</div>
               </div>
             </a>
-            <nav className="flex-grow md:hidden px-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
-              {categories.map(c => <button key={c} className={`px-3 py-2 rounded text-sm ${category === c ? 'bg-pink-100 text-pink-700' : ''}`} onClick={() => handleCategoryChange(c)}>{c}</button>)}
+
+            <nav className="flex-grow min-w-0 md:hidden">
+              <div className="flex items-center overflow-x-auto whitespace-nowrap scrollbar-hide">
+                {categories.map(c => (
+                  <button key={c} className={`px-3 py-2 rounded text-sm flex-shrink-0 ${category === c ? 'bg-pink-100 text-pink-700' : 'hover:bg-gray-100'}`} onClick={() => handleCategoryChange(c)}>
+                    {c}
+                  </button>
+                ))}
+              </div>
             </nav>
-            <div className="flex items-center gap-3">
-              <nav className="hidden md:flex gap-2">
-                {categories.map(c => <button key={c} className={`px-3 py-1.5 rounded-full text-sm ${category === c ? 'bg-pink-500 text-white shadow-md' : ''}`} onClick={() => handleCategoryChange(c)}>{c}</button>)}
+
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <nav className="hidden md:flex gap-3 items-center mr-2">
+                {categories.map(c => (
+                  <button key={c} className={`px-3 py-2 rounded ${category === c ? 'bg-pink-100 text-pink-700' : 'hover:bg-gray-100'}`} onClick={() => handleCategoryChange(c)}>
+                    {c}
+                  </button>
+                ))}
               </nav>
-              <button onClick={openCart} className="relative p-2 rounded-full bg-white border border-gray-100 shadow-sm">
-                <img src="./src/carrito.png" alt="Carrito" className="h-6 w-6" />
-                {cart.length > 0 && <span className="absolute -right-1 -top-1 bg-pink-600 text-white text-[10px] font-bold rounded-full h-5 w-5 flex items-center justify-center">{cart.length}</span>}
+              <button onClick={openCart} className="relative p-2 rounded-md bg-white hover:bg-gray-50 border border-gray-100 shadow-sm" aria-label="Abrir carrito">
+                <img src="./src/carrito.png" alt="Carrito" onLoad={() => setCartImgVisible(true)} onError={(e) => { setCartImgVisible(false); e.target.style.display = 'none'; }} className="h-6 w-6 object-contain" style={{ display: cartImgVisible ? 'block' : 'none' }} />
+                {!cartImgVisible && (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4" />
+                  </svg>
+                )}
+                {cart.length > 0 && <span className="absolute -right-2 -top-2 bg-pink-600 text-white text-xs rounded-full px-1.5">{cart.length}</span>}
               </button>
             </div>
           </div>
         </header>
 
-        <main className="max-w-6xl mx-auto px-4 py-4 flex-grow">
-          <section className="bg-white rounded-lg p-3 shadow-sm mb-4 flex flex-col md:flex-row gap-3">
-            <input value={query} onChange={e => setQuery(e.target.value)} className="flex-1 border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:border-pink-300" placeholder="Buscar productos... 🔍" />
-            <select value={subCategory} onChange={e => { setSubCategory(e.target.value); playBubbleSound(); }} className="border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none">
-              {availableSubcategories.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+        {/* Main Content */}
+        <main className="max-w-6xl mx-auto px-3 sm:px-4 py-4 flex-grow" style={{ paddingTop: 8 }}>
+          
+          <section className="bg-white rounded-lg p-3 sm:p-4 shadow-sm mb-4 border border-gray-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="flex items-center gap-2">
+                <input aria-label="Buscar productos" value={query} onChange={e => setQuery(e.target.value)} className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:border-pink-300 focus:outline-none" placeholder="Buscar por nombre o categoría..." />
+              </div>
+              <div className="flex flex-wrap gap-2 items-center justify-end">
+                <select value={subCategory} onChange={e => { setSubCategory(e.target.value); playBubbleSound(); }} className="border border-gray-200 rounded px-3 py-2 text-sm w-full md:w-auto focus:outline-none">
+                  {availableSubcategories.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+            </div>
           </section>
 
-          {isLoading ? (
-            <div className="p-12 text-center bg-white rounded-xl"><div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-pink-200 border-t-pink-500"></div>Cargando...</div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {filtered.slice(0, 12).map((p, index) => (
-                <FadeInOnScroll key={p.id} delay={index * 50}>
-                  <article className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col h-full border border-gray-100">
-                    <div className="relative">
-                      {/* EFECTO GRIS SI ESTÁ AGOTADO */}
-                      <ImageWithModal src={p.image} alt={p.name} className={`w-full h-40 sm:h-44 ${p.estado === 'agotado' ? 'grayscale opacity-60' : ''}`} />
-                      <div className="absolute left-2 top-2 rounded-full bg-white/95 px-2 py-1 text-[9px] font-bold text-pink-600 shadow-sm z-10">{p.category}</div>
+          <section>
+            <h2 className="text-lg font-semibold mb-3 text-gray-800">Productos ({filtered.length})</h2>
+            
+            {isLoading ? (
+              <div className="bg-white rounded-lg p-8 text-center shadow-sm border border-gray-100">
+                <div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-pink-200 border-t-pink-500"></div>
+                <div className="text-sm text-gray-600">Cargando productos...</div>
+              </div>
+            ) : visibleProducts.length === 0 ? (
+              <div className="bg-white rounded-lg p-6 text-center shadow-sm border border-gray-100">No se encontraron productos.</div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {visibleProducts.map((p, index) => (
+                  <FadeInOnScroll key={p.id} delay={index * 50}>
+                    <article className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden flex flex-col h-full border border-gray-100 hover:-translate-y-1">
                       
-                      {/* ETIQUETAS DE ESTADO */}
-                      {p.estado === 'agotado' && <div className="absolute inset-0 flex items-center justify-center bg-black/20 z-20"><span className="bg-gray-700 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase">Agotado</span></div>}
-                      {p.estado === 'nuevo' && <div className="absolute right-2 top-2 z-20"><span className="bg-yellow-400 text-black px-2 py-1 rounded-full text-[9px] font-black uppercase shadow-md">✨ Nuevo</span></div>}
-                    </div>
-                    
-                    <div className="p-3 flex flex-col h-full">
-                      <h3 className="font-bold text-sm line-clamp-2 leading-tight">{p.name}</h3>
-                      <p className="text-[11px] text-gray-500 mt-1 mb-2">{p.short}</p>
-                      <div className="mt-auto">
-                        <div className="text-base font-extrabold mb-2">{moneyFmt.format(p.price)}</div>
-                        <div className="flex items-center gap-1.5">
-                          <div className="flex items-center border border-gray-100 rounded-lg">
-                            <button onClick={() => setQuantities({...quantities, [p.id]: Math.max(1, (quantities[p.id]||1) - 1)})} className="w-7 h-7 text-gray-400">-</button>
-                            <span className="w-6 text-center text-xs font-bold">{quantities[p.id]||1}</span>
-                            <button onClick={() => setQuantities({...quantities, [p.id]: (quantities[p.id]||1) + 1})} className="w-7 h-7 text-gray-400">+</button>
+                      <div className="relative">
+                        {/* IMAGEN DE PRODUCTO (Oscurecida si está agotado) */}
+                        <ImageWithModal 
+                          src={p.image || `./src/${slugify(p.name)}.jpg`} 
+                          images={p.images} 
+                          alt={p.name} 
+                          className={`w-full h-40 sm:h-44 ${p.estado === 'agotado' ? 'grayscale opacity-70' : ''}`} 
+                          imgClass="object-cover w-full h-full" 
+                        />
+                        <div className="absolute left-2 top-2 rounded-full bg-white/95 px-2 py-1 text-[9px] uppercase tracking-wider font-bold text-pink-600 shadow-sm backdrop-blur-sm z-10">
+                          {p.category}
+                        </div>
+
+                        {/* ETIQUETAS DE ESTADO ("Agotado" o "Nuevo") */}
+                        {p.estado === 'agotado' && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/10 z-20 pointer-events-none">
+                            <span className="bg-gray-800/90 backdrop-blur-sm text-white px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider shadow-lg">Agotado</span>
                           </div>
-                          <button 
-                            onClick={() => { playBubbleSound(); addToCart(p, quantities[p.id]||1); triggerConfetti(); }} 
-                            disabled={p.estado === 'agotado'}
-                            className={`flex-1 py-1.5 rounded-lg text-[10px] sm:text-[11px] font-bold transition-all ${p.estado === 'agotado' ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-pink-500 to-rose-400 text-white shadow-sm'}`}
-                          >
-                            {p.estado === 'agotado' ? 'No disponible' : 'Agregar'}
-                          </button>
+                        )}
+                        {p.estado === 'nuevo' && (
+                          <div className="absolute right-2 top-2 z-20 pointer-events-none">
+                            <span className="bg-gradient-to-r from-yellow-400 to-amber-500 text-yellow-900 px-2 py-1 rounded-full text-[9px] font-black uppercase shadow-md border border-yellow-200">✨ Nuevo</span>
+                          </div>
+                        )}
+
+                      </div>
+                      
+                      <div className="p-3 flex flex-col h-full">
+                        <h3 className="font-bold text-sm sm:text-base line-clamp-2 text-gray-800 leading-tight">{p.name}</h3>
+                        <p className="text-[11px] sm:text-xs text-gray-500 mt-1 mb-2 leading-relaxed">{p.short || p.description}</p>
+                        
+                        <div className="mt-auto">
+                          <div className="text-base sm:text-lg font-extrabold text-gray-900 mb-2">{moneyFmt.format(p.price || 0)}</div>
+                          
+                          <div className="flex items-center justify-between gap-1.5">
+                            <div className="flex items-center border border-gray-200 rounded-lg bg-white shadow-sm">
+                              <button onClick={() => decrementQuantity(p.id)} className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-pink-600 hover:bg-pink-50 text-lg rounded-l-lg transition-colors">-</button>
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                value={quantities[p.id] || 1}
+                                onChange={(e) => handleQuantityChange(p.id, e.target.value)}
+                                className="w-6 text-center text-xs font-bold text-gray-700 bg-transparent outline-none border-x border-gray-100"
+                              />
+                              <button onClick={() => incrementQuantity(p.id)} className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-pink-600 hover:bg-pink-50 text-lg rounded-r-lg transition-colors">+</button>
+                            </div>
+                            
+                            {/* BOTON DE AGREGAR: Desactivado y gris si está agotado */}
+                            <button 
+                              onClick={() => { playBubbleSound(); addToCart(p, quantities[p.id] || 1); triggerConfetti(); }} 
+                              disabled={p.estado === 'agotado'}
+                              className={`flex-1 px-1.5 py-1.5 rounded-lg text-[10px] sm:text-[11px] font-bold transition-all shadow-sm text-center leading-tight ${p.estado === 'agotado' ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-pink-500 to-rose-400 text-white hover:from-pink-600 hover:to-rose-500'}`}
+                            >
+                              {p.estado === 'agotado' ? 'Agotado' : 'Agregar'}
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </article>
-                </FadeInOnScroll>
-              ))}
-            </div>
-          )}
+                    </article>
+                  </FadeInOnScroll>
+                ))}
+              </div>
+            )}
+            {visibleCount < filtered.length && (
+              <div className="mt-6 text-center">
+                <button onClick={() => { setVisibleCount(v => v + 12); triggerConfetti(); }} className="px-5 py-2.5 bg-white border border-gray-200 shadow-sm rounded-full text-gray-700 font-medium hover:bg-gray-50 transition-colors">Cargar más</button>
+              </div>
+            )}
+          </section>
         </main>
 
-        <footer className="mt-8 py-8 text-center text-xs text-gray-400 space-y-4">
+        <footer className="mt-8 sm:mt-12 py-8 bg-transparent text-center text-sm text-gray-500 space-y-4">
           <div className="flex justify-center gap-6">
-            <a href="https://www.facebook.com/profile.php?id=61577446754797" target="_blank" className="text-blue-600 hover:scale-110 transition-transform"><svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
-            <a href="https://www.instagram.com/eventosycelebracionesgt/" target="_blank" className="text-pink-600 hover:scale-110 transition-transform"><svg className="w-7 h-7" fill="currentColor" viewBox="0 0 448 512"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg></a>
+            <a href="https://www.facebook.com/profile.php?id=61577446754797" target="_blank" className="text-blue-600 hover:scale-110 transition-transform">
+              <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </a>
+            <a href="https://www.instagram.com/eventosycelebracionesgt/" target="_blank" className="text-pink-600 hover:scale-110 transition-transform">
+              <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 448 512"><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg>
+            </a>
+            <a href="https://www.tiktok.com/@eventosycelebraci" target="_blank" className="text-black hover:scale-110 transition-transform">
+              <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 448 512"><path d="M448 209.91a210.06 210.06 0 0 1-122.77-39.25V349.38A162.55 162.55 0 1 1 185 188.31V278.2a74.62 74.62 0 1 0 52.23 71.18V0l88 0a121.18 121.18 0 0 0 1.86 22.17A122.18 122.18 0 0 0 381 102.39a121.4 121.4 0 0 0 67 20.14z"/></svg>
+            </a>
           </div>
-          <div>© {new Date().getFullYear()} Eventos y Celebraciones GT — Hecho con cariño ✨</div>
+          <div>© {new Date().getFullYear()} Eventos y Celebraciones GT — Hecho con cariño</div>
         </footer>
       </div>
 
       {/* Carrito lateral */}
-      <div className={`fixed top-0 right-0 h-full w-full md:w-96 bg-white shadow-2xl transform ${cartOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 z-[100]`}>
-        <div className="p-4 border-b flex items-center justify-between">
-          <h3 className="text-lg font-bold">Tu carrito</h3>
-          <button onClick={closeCart} className="text-gray-400">Cerrar</button>
+      <div className={`fixed top-0 right-0 h-full w-full md:w-96 bg-white shadow-2xl transform ${cartOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 ease-in-out`} style={{ zIndex: 100 }}>
+        <div className="p-4 border-b flex items-center justify-between bg-white">
+          <h3 className="text-lg font-bold text-gray-800">Tu carrito</h3>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setCart([])} className="text-sm text-red-500 hover:text-red-600 transition-colors">Vaciar</button>
+            <button onClick={closeCart} className="px-2 py-1 border border-gray-200 rounded hover:bg-gray-50 transition-colors text-gray-600">Cerrar</button>
+          </div>
         </div>
-        <div className="p-4 space-y-4 overflow-auto h-[calc(100%-350px)]">
-          {cart.length === 0 ? <div className="text-center text-gray-400 mt-10">Vacío 🛍️</div> : cart.map(p => (
-            <div key={p.id} className="flex items-center gap-3">
-              <img src={p.image} className="w-12 h-12 rounded object-cover" />
-              <div className="flex-1 text-sm font-medium">{p.name}</div>
-              <div className="text-xs font-bold text-pink-600">{moneyFmt.format(p.price * p.qty)}</div>
-              <button onClick={() => { playBubbleSound(); setCart(cart.filter(x => x.id !== p.id)); }} className="text-red-300">🗑️</button>
-            </div>
-          ))}
+        
+        <div className="p-4 space-y-4 overflow-auto" style={{ maxHeight: 'calc(100% - 290px)' }}>
+          {cart.length === 0 ? (
+            <div className="text-center text-gray-500 mt-10">No hay productos en el carrito.</div>
+          ) : (
+            cart.map(p => (
+              <div key={p.id} className="flex items-center gap-3">
+                <ImageWithModal src={p.image || `./src/${slugify(p.name)}.jpg`} images={p.images} alt={p.name} className="w-16 h-16 rounded overflow-hidden flex-shrink-0" imgClass="object-cover w-full h-full" />
+                <div className="flex-1">
+                  <div className="font-semibold text-sm truncate text-gray-800">{p.name}</div>
+                  <div className="text-xs text-pink-600 font-medium">{moneyFmt.format(p.price || 0)}</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center border border-gray-200 rounded-md">
+                     <button onClick={() => { playBubbleSound(); updateQty(p.id, p.qty - 1); }} className="px-2 py-1 leading-none border-r border-gray-200 hover:bg-gray-50 text-gray-600">-</button>
+                     <input
+                       type="text"
+                       inputMode="numeric"
+                       value={p.qty}
+                       onChange={e => updateQty(p.id, e.target.value)}
+                       className="w-10 text-center border-none text-sm bg-transparent outline-none"
+                     />
+                     <button onClick={() => { playBubbleSound(); updateQty(p.id, p.qty + 1); }} className="px-2 py-1 leading-none border-l border-gray-200 hover:bg-gray-50 text-gray-600">+</button>
+                  </div>
+                  <button onClick={() => { playBubbleSound(); removeFromCart(p.id); }} className="text-sm text-red-400 hover:text-red-500 transition-colors">🗑️</button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
-        <div className="p-4 border-t absolute bottom-0 w-full bg-white space-y-3 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
-          <input value={customerData.nombre} onChange={e => setCustomerData({...customerData, nombre: e.target.value})} placeholder="Tu nombre..." className="w-full border rounded px-3 py-2 text-sm focus:border-pink-300 outline-none" />
-          <input value={customerData.direccion} onChange={e => setCustomerData({...customerData, direccion: e.target.value})} placeholder="Dirección..." className="w-full border rounded px-3 py-2 text-sm focus:border-pink-300 outline-none" />
-          <input value={customerData.fecha} onChange={e => setCustomerData({...customerData, fecha: e.target.value})} type="date" className="w-full border rounded px-3 py-2 text-sm focus:border-pink-300 outline-none" />
-          <div className="flex justify-between font-bold text-lg"><span>Total</span><span className="text-pink-600">{moneyFmt.format(subtotal)}</span></div>
-          <button onClick={openWhatsApp} className="w-full py-3 bg-green-500 text-white rounded-lg font-bold shadow-md hover:bg-green-600">Ordenar por WhatsApp</button>
+        
+        {/* Footer del carrito */}
+        <div className="p-4 border-t border-gray-100 bg-white absolute bottom-0 w-full shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+          <div className="space-y-2 mb-4">
+             <input value={customerData.nombre} onChange={e => setCustomerData({...customerData, nombre: e.target.value})} placeholder="Tu nombre..." className="w-full border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:border-pink-300 focus:ring-1 focus:ring-pink-200 transition-shadow" />
+             <input value={customerData.direccion} onChange={e => setCustomerData({...customerData, direccion: e.target.value})} placeholder="Dirección de entrega..." className="w-full border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:border-pink-300 focus:ring-1 focus:ring-pink-200 transition-shadow" />
+             <input value={customerData.fecha} onChange={e => setCustomerData({...customerData, fecha: e.target.value})} type="date" className="w-full border border-gray-200 rounded px-3 py-2 text-sm outline-none focus:border-pink-300 focus:ring-1 focus:ring-pink-200 transition-shadow text-gray-600" />
+          </div>
+          <div className="flex justify-between font-bold text-lg mb-4 text-gray-800"><span>Total</span><span className="text-pink-600">{moneyFmt.format(total)}</span></div>
+          <button onClick={() => { openWhatsApp(); triggerConfetti(); }} className="w-full px-4 py-3 bg-green-500 hover:bg-green-600 transition-colors text-white rounded-lg mb-2 text-sm font-bold shadow-md">Ordenar por WhatsApp</button>
         </div>
       </div>
     </div>
   );
 }
 
+// export
 window.DulceriaApp = DulceriaApp;
