@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useCart } from '../context/CartContext'
 import { formatMoney } from '../lib/format'
+import MediaPlaceholder from './MediaPlaceholder'
 
 // Cambia este número por el de la empresa (formato internacional sin +, ni espacios)
 const WHATSAPP = '50242454160'
@@ -72,8 +73,10 @@ export default function CartDrawer() {
             items.map((p) => (
               <div key={p.id} className="flex items-center gap-3">
                 <div className="w-14 h-14 rounded-lg overflow-hidden bg-marca-50 flex-shrink-0">
-                  {p.cover && (
+                  {p.cover ? (
                     <img src={p.cover} alt={p.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <MediaPlaceholder compact />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useCart } from '../context/CartContext'
 import { formatMoney } from '../lib/format'
 import Badge from './Badge'
+import MediaPlaceholder from './MediaPlaceholder'
 
 export default function ProductCard({ product, onOpen }) {
   const { add } = useCart()
@@ -30,9 +31,7 @@ export default function ProductCard({ product, onOpen }) {
             }`}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-300 text-sm">
-            Sin imagen
-          </div>
+          <MediaPlaceholder />
         )}
 
         {/* Categoría */}
