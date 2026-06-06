@@ -1,33 +1,18 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Poppins:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+}
 
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-family: 'Poppins', system-ui, sans-serif;
 }
 
-/* Ocultar barra de scroll (menú horizontal de categorías) */
+/* Ocultar barra de scroll (usado en el menú horizontal de categorías) */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
-/* Fondo del sitio: degradado cálido crema + rosa muy suave */
-.fondo-festivo {
-  background-color: #fffaf6;
-  background-image:
-    radial-gradient(at 12% 8%, rgba(255, 199, 221, 0.35) 0px, transparent 45%),
-    radial-gradient(at 88% 4%, rgba(255, 224, 178, 0.30) 0px, transparent 40%),
-    radial-gradient(at 80% 92%, rgba(255, 199, 221, 0.25) 0px, transparent 45%);
-}
-
-/* Aparición suave al hacer scroll */
-@keyframes subirAparecer {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.aparecer { animation: subirAparecer 0.5s ease-out both; }
