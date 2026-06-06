@@ -1,18 +1,44 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Poppins:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-html {
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
+/* El fondo festivo ahora vive en el body, para que las figuras flotantes
+   (capa -z-10) se vean por encima del color y detrás del contenido. */
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-family: 'Poppins', system-ui, sans-serif;
+  background-color: #fffaf6;
+  background-image:
+    radial-gradient(at 12% 8%, rgba(255, 199, 221, 0.35) 0px, transparent 45%),
+    radial-gradient(at 88% 4%, rgba(255, 224, 178, 0.30) 0px, transparent 40%),
+    radial-gradient(at 80% 92%, rgba(255, 199, 221, 0.25) 0px, transparent 45%);
+  background-attachment: fixed;
 }
 
-/* Ocultar barra de scroll (usado en el menú horizontal de categorías) */
+/* Los contenedores que usaban este fondo ahora son transparentes y dejan
+   ver el del body (y las figuras flotantes). */
+.fondo-festivo { background: transparent; }
+
+/* Ocultar barra de scroll (menú horizontal de categorías) */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Aparición suave */
+@keyframes subirAparecer {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.aparecer { animation: subirAparecer 0.5s ease-out both; }
+
+/* Figuras de fiesta flotando hacia arriba */
+@keyframes flotar {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
+  12%  { opacity: 0.45; }
+  88%  { opacity: 0.45; }
+  100% { transform: translateY(-115vh) rotate(35deg); opacity: 0; }
+}

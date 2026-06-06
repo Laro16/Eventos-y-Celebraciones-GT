@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useCatalog } from './hooks/useCatalog'
 import { CartProvider } from './context/CartContext'
 import Header from './components/Header'
@@ -7,9 +7,11 @@ import ProductGrid from './components/ProductGrid'
 import ProductModal from './components/ProductModal'
 import CartDrawer from './components/CartDrawer'
 import Footer from './components/Footer'
+import FloatingBackground from './components/FloatingBackground'
 import AdminApp from './components/admin/AdminApp'
 import WelcomeModal from './components/WelcomeModal'
 import { WHATSAPP } from './lib/config'
+import { lanzarConfetti } from './lib/confetti'
 
 export default function App({ admin = false }) {
   if (admin) {
@@ -30,6 +32,15 @@ function Catalogo() {
   const [subCategory, setSubCategory] = useState('Todas')
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState(null)
+
+  // Confeti pequeño en cada toque del catálogo público.
+  useEffect(() => {
+    function onTap(e) {
+      lanzarConfetti({ x: e.clientX, y: e.clientY, count: 18, duracion: 1100, power: 7 })
+    }
+    window.addEventListener('pointerdown', onTap)
+    return () => window.removeEventListener('pointerdown', onTap)
+  }, [])
 
   const subcategories = useMemo(
     () => getSubcategories(category),
@@ -64,10 +75,11 @@ function Catalogo() {
 
   return (
     <div className="min-h-screen fondo-festivo flex flex-col">
+      <FloatingBackground />
       <WelcomeModal />
       <Header categories={categories} category={category} onSelectCategory={handleCategory} />
 
-     {/* Hero compacto */}
+      {/* Hero compacto */}
       <div className="max-w-6xl w-full mx-auto px-3 sm:px-5 pt-4">
         <div className="rounded-2xl bg-gradient-to-r from-marca-500 to-marca-700 text-white px-5 py-4 shadow-suave">
           <h1 className="font-display text-lg sm:text-2xl font-700 leading-tight">
