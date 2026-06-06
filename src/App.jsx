@@ -67,19 +67,15 @@ function Catalogo() {
       <WelcomeModal />
       <Header categories={categories} category={category} onSelectCategory={handleCategory} />
 
-      {/* Hero */}
-      <div className="max-w-6xl w-full mx-auto px-3 sm:px-5 pt-6">
-        <div className="rounded-3xl bg-gradient-to-br from-marca-500 to-marca-700 text-white px-6 py-8 sm:px-10 sm:py-12 shadow-suave relative overflow-hidden">
-          <div className="relative z-10">
-            <h1 className="font-display text-2xl sm:text-4xl font-700 leading-tight max-w-xl">
-              Hacemos memorables tus celebraciones ✨
-            </h1>
-            <p className="text-marca-100 mt-2 max-w-lg text-sm sm:text-base">
-              Invitaciones digitales, decoración y todo lo que tu fiesta necesita. Pide fácil por WhatsApp.
-            </p>
-          </div>
-          <div className="absolute -right-8 -bottom-10 w-48 h-48 rounded-full bg-white/10" />
-          <div className="absolute right-20 -top-12 w-32 h-32 rounded-full bg-white/10" />
+     {/* Hero compacto */}
+      <div className="max-w-6xl w-full mx-auto px-3 sm:px-5 pt-4">
+        <div className="rounded-2xl bg-gradient-to-r from-marca-500 to-marca-700 text-white px-5 py-4 shadow-suave">
+          <h1 className="font-display text-lg sm:text-2xl font-700 leading-tight">
+            Hacemos memorables tus celebraciones ✨
+          </h1>
+          <p className="text-marca-100 text-xs sm:text-sm mt-0.5">
+            Invitaciones, decoración y todo para tu fiesta. Pide fácil por WhatsApp.
+          </p>
         </div>
       </div>
 
