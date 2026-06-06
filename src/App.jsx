@@ -4,6 +4,7 @@ import { CartProvider } from './context/CartContext'
 import Header from './components/Header'
 import Filters from './components/Filters'
 import ProductGrid from './components/ProductGrid'
+import ProductModal from './components/ProductModal'
 import CartDrawer from './components/CartDrawer'
 import Footer from './components/Footer'
 
@@ -35,6 +36,7 @@ function Catalogo() {
   const [category, setCategory] = useState('Todos')
   const [subCategory, setSubCategory] = useState('Todas')
   const [query, setQuery] = useState('')
+  const [selected, setSelected] = useState(null)
 
   const subcategories = useMemo(
     () => getSubcategories(category),
@@ -115,14 +117,15 @@ function Catalogo() {
           <div className="aparecer">
             {vistaPrincipal && (
               <>
-                <ProductGrid title="Más vendidos" icon="★" products={masVendidos} layout="row" />
-                <ProductGrid title="Promociones" icon="🎁" products={promociones} layout="row" />
+                <ProductGrid title="Más vendidos" icon="★" products={masVendidos} layout="row" onOpen={setSelected} />
+                <ProductGrid title="Promociones" icon="🎁" products={promociones} layout="row" onOpen={setSelected} />
               </>
             )}
 
             <ProductGrid
               title={vistaPrincipal ? 'Todo el catálogo' : `Resultados (${filtered.length})`}
               products={filtered}
+              onOpen={setSelected}
             />
 
             {filtered.length === 0 && (
@@ -136,6 +139,7 @@ function Catalogo() {
 
       <Footer />
       <CartDrawer />
+      <ProductModal product={selected} onClose={() => setSelected(null)} />
 
       {/* Botón flotante de WhatsApp */}
       <a
