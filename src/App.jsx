@@ -8,8 +8,7 @@ import ProductModal from './components/ProductModal'
 import CartDrawer from './components/CartDrawer'
 import Footer from './components/Footer'
 import AdminApp from './components/admin/AdminApp'
-
-const WHATSAPP = '50242454160'
+import { WHATSAPP } from './lib/config'
 
 export default function App({ admin = false }) {
   if (admin) {
