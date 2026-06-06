@@ -7,7 +7,14 @@ import MediaPlaceholder from './MediaPlaceholder'
 export default function ProductCard({ product, onOpen }) {
   const { add } = useCart()
   const [qty, setQty] = useState(1)
+  const [added, setAdded] = useState(false)
   const p = product
+
+  function agregar() {
+    add(p, qty)
+    setAdded(true)
+    setTimeout(() => setAdded(false), 1300)
+  }
 
   const agotado = !p.isAvailable
   const tieneVideo = p.videos.length > 0
@@ -120,15 +127,17 @@ export default function ProductCard({ product, onOpen }) {
             </div>
 
             <button
-              onClick={() => add(p, qty)}
+              onClick={agregar}
               disabled={agotado}
               className={`flex-1 rounded-lg py-2 text-sm font-bold transition-all ${
                 agotado
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : added
+                  ? 'bg-green-500 text-white'
                   : 'bg-gradient-to-r from-marca-500 to-marca-600 text-white hover:shadow-suave'
               }`}
             >
-              {agotado ? 'Agotado' : 'Agregar'}
+              {agotado ? 'Agotado' : added ? '✓ Agregado' : 'Agregar'}
             </button>
           </div>
         </div>
