@@ -117,7 +117,7 @@ function Catalogo() {
             )}
 
             <ProductGrid
-              title={vistaPrincipal ? 'Todo el catálogo' : `Resultados (${filtered.length})`}
+              title={vistaPrincipal ? 'Todo el catálogo' : 'Resultados (' + filtered.length + ')'}
               products={filtered}
               onOpen={setSelected}
             />
@@ -137,7 +137,7 @@ function Catalogo() {
 
       {/* Botón flotante de WhatsApp */}
       
-        href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent('Hola, tengo una consulta sobre sus servicios para eventos.')}`}
+        href={'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent('Hola, tengo una consulta sobre sus servicios para eventos.')}
         target="_blank"
         rel="noreferrer"
         className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-green-500 hover:bg-green-600 text-white px-4 py-3 shadow-xl hover:scale-105 transition-transform"
