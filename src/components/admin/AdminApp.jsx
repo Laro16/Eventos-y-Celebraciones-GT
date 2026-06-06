@@ -5,6 +5,7 @@ import { deleteProduct } from '../../lib/admin'
 import { formatMoney } from '../../lib/format'
 import Login from './Login'
 import ProductForm from './ProductForm'
+import MediaPlaceholder from '../MediaPlaceholder'
 
 export default function AdminApp() {
   const { user, loading: authLoading, signOut } = useAuth()
@@ -88,7 +89,7 @@ function Dashboard({ user, signOut }) {
                   {p.cover ? (
                     <img src={p.cover} alt={p.name} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-gray-300 text-xs">sin foto</span>
+                    <MediaPlaceholder compact />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
