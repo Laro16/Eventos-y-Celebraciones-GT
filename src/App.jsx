@@ -8,6 +8,7 @@ import ProductModal from './components/ProductModal'
 import CartDrawer from './components/CartDrawer'
 import Footer from './components/Footer'
 import FloatingBackground from './components/FloatingBackground'
+import ProductSkeleton from './components/ProductSkeleton'
 import AdminApp from './components/admin/AdminApp'
 import WelcomeModal from './components/WelcomeModal'
 import { WHATSAPP } from './lib/config'
@@ -103,9 +104,10 @@ function Catalogo() {
         </div>
 
         {loading && (
-          <div className="text-center py-16">
-            <div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-marca-200 border-t-marca-500" />
-            <p className="text-sm text-gray-500">Cargando productos…</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <ProductSkeleton key={i} />
+            ))}
           </div>
         )}
 
