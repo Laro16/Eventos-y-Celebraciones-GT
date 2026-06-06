@@ -7,20 +7,13 @@ import ProductGrid from './components/ProductGrid'
 import ProductModal from './components/ProductModal'
 import CartDrawer from './components/CartDrawer'
 import Footer from './components/Footer'
+import AdminApp from './components/admin/AdminApp'
 
 const WHATSAPP = '50242454160'
 
 export default function App({ admin = false }) {
   if (admin) {
-    // El panel de administración se construye en el Paso 6.
-    return (
-      <div className="min-h-screen fondo-festivo flex items-center justify-center p-6">
-        <div className="bg-white rounded-2xl shadow-suave border border-marca-100 p-8 text-center max-w-sm">
-          <h1 className="font-display text-xl font-700 text-marca-700">Panel de administración</h1>
-          <p className="text-sm text-gray-500 mt-2">Próximo paso: login y gestión de productos.</p>
-        </div>
-      </div>
-    )
+    return <AdminApp />
   }
 
   return (
