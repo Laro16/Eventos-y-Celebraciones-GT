@@ -8,6 +8,7 @@ import ProductModal from './components/ProductModal'
 import CartDrawer from './components/CartDrawer'
 import Footer from './components/Footer'
 import AdminApp from './components/admin/AdminApp'
+import WelcomeModal from './components/WelcomeModal'
 import { WHATSAPP } from './lib/config'
 
 export default function App({ admin = false }) {
@@ -63,6 +64,7 @@ function Catalogo() {
 
   return (
     <div className="min-h-screen fondo-festivo flex flex-col">
+      <WelcomeModal />
       <Header categories={categories} category={category} onSelectCategory={handleCategory} />
 
       {/* Hero */}
@@ -134,7 +136,7 @@ function Catalogo() {
       <ProductModal product={selected} onClose={() => setSelected(null)} />
 
       {/* Botón flotante de WhatsApp */}
-      <a
+      
         href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent('Hola, tengo una consulta sobre sus servicios para eventos.')}`}
         target="_blank"
         rel="noreferrer"
