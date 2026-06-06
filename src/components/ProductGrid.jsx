@@ -34,9 +34,12 @@ export default function ProductGrid({ title, icon, products, onOpen, layout = 'g
 
 function SectionTitle({ icon, children }) {
   return (
-    <h2 className="font-display text-xl sm:text-2xl font-700 text-marca-700 mb-3 flex items-center gap-2">
-      {icon && <span>{icon}</span>}
-      {children}
-    </h2>
+    <div className="flex items-center gap-3 mb-4">
+      <h2 className="font-display text-xl sm:text-2xl font-700 text-marca-700 flex items-center gap-2 whitespace-nowrap">
+        {icon && <span>{icon}</span>}
+        {children}
+      </h2>
+      <div className="flex-1 h-px bg-gradient-to-r from-marca-200 to-transparent" />
+    </div>
   )
 }
