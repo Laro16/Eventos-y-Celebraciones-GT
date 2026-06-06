@@ -5,6 +5,7 @@ import { deleteProduct } from '../../lib/admin'
 import { formatMoney } from '../../lib/format'
 import Login from './Login'
 import ProductForm from './ProductForm'
+import MediaShareSheet from './MediaShareSheet'
 import MediaPlaceholder from '../MediaPlaceholder'
 
 export default function AdminApp() {
@@ -27,6 +28,7 @@ function Dashboard({ user, signOut }) {
   const { products, loading, error, categories, refresh } = useCatalog({ includeHidden: true })
   const [editing, setEditing] = useState(null) // producto en edición
   const [creating, setCreating] = useState(false)
+  const [sharing, setSharing] = useState(null) // producto para compartir media
 
   async function borrar(p) {
     if (!confirm(`¿Eliminar "${p.name}"? Esto borra también sus archivos.`)) return
@@ -110,6 +112,9 @@ function Dashboard({ user, signOut }) {
                   </div>
                   <div className="flex gap-2 mt-2">
                     <button onClick={() => setEditing(p)} className="flex-1 text-sm font-semibold text-marca-600 bg-marca-50 rounded-lg py-1.5">Editar</button>
+                    {p.media.length > 0 && (
+                      <button onClick={() => setSharing(p)} className="flex-1 text-sm font-semibold text-green-700 bg-green-50 rounded-lg py-1.5">Enviar</button>
+                    )}
                     <button onClick={() => borrar(p)} className="text-sm font-semibold text-red-500 bg-red-50 rounded-lg py-1.5 px-3">Borrar</button>
                   </div>
                 </div>
@@ -135,6 +140,8 @@ function Dashboard({ user, signOut }) {
           onSaved={refresh}
         />
       )}
+
+      {sharing && <MediaShareSheet product={sharing} onClose={() => setSharing(null)} />}
     </div>
   )
 }
