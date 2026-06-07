@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useCart } from '../context/CartContext'
 import { formatMoney } from '../lib/format'
+import { linkWhatsAppProducto } from '../lib/whatsapp'
 import Badge from './Badge'
 import MediaPlaceholder from './MediaPlaceholder'
 
@@ -76,7 +77,7 @@ export default function ProductCard({ product, onOpen, index = 0 }) {
       </button>
 
       {/* Contenido */}
-      <div className="p-3.5 flex flex-col flex-1">
+      <div className="p-3 flex flex-col flex-1">
         <h3 className="font-display font-600 text-gray-800 leading-tight line-clamp-2">
           {p.name}
         </h3>
@@ -143,6 +144,16 @@ export default function ProductCard({ product, onOpen, index = 0 }) {
               {agotado ? 'Agotado' : added ? '✓ Agregado' : 'Agregar'}
             </button>
           </div>
+
+          <a
+            href={linkWhatsAppProducto(p)}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 flex items-center justify-center gap-1.5 rounded-lg bg-green-500 hover:bg-green-600 active:scale-95 text-white py-2 text-sm font-bold transition-all"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 0C5.385 0 0 5.384 0 12.031c0 2.128.552 4.195 1.6 6.015L.231 24l6.096-1.599a11.957 11.957 0 005.704 1.442h.005c6.645 0 12.028-5.385 12.028-12.032C24.064 5.387 18.679 0 12.031 0z" /></svg>
+            Info por WhatsApp
+          </a>
         </div>
       </div>
     </article>

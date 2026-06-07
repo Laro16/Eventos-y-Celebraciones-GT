@@ -7,7 +7,7 @@ export default function ProductGrid({ title, icon, products, onOpen, layout = 'g
 
   if (layout === 'row') {
     return (
-      <section className="mb-8">
+      <section className="mb-6 sm:mb-8">
         {title && <SectionTitle icon={icon}>{title}</SectionTitle>}
         <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
           {products.map((p, i) => (
@@ -21,9 +21,9 @@ export default function ProductGrid({ title, icon, products, onOpen, layout = 'g
   }
 
   return (
-    <section className="mb-8">
+    <section className="mb-6 sm:mb-8">
       {title && <SectionTitle icon={icon}>{title}</SectionTitle>}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
         {products.map((p, i) => (
           <ProductCard key={p.id} product={p} onOpen={onOpen} index={i} />
         ))}
@@ -35,7 +35,7 @@ export default function ProductGrid({ title, icon, products, onOpen, layout = 'g
 function SectionTitle({ icon, children }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <h2 className="font-display text-xl sm:text-2xl font-700 text-marca-700 flex items-center gap-2 whitespace-nowrap">
+      <h2 className="font-display text-lg sm:text-2xl font-700 text-marca-700 flex items-center gap-2 whitespace-nowrap">
         {icon && <span>{icon}</span>}
         {children}
       </h2>
