@@ -4,7 +4,7 @@ import { formatMoney } from '../lib/format'
 import Badge from './Badge'
 import MediaPlaceholder from './MediaPlaceholder'
 
-export default function ProductCard({ product, onOpen }) {
+export default function ProductCard({ product, onOpen, index = 0 }) {
   const { add } = useCart()
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
@@ -21,7 +21,10 @@ export default function ProductCard({ product, onOpen }) {
   const tienePdf = p.pdfs.length > 0
 
   return (
-    <article className="group bg-white rounded-2xl shadow-suave border border-marca-100/70 overflow-hidden flex flex-col transition-transform duration-300 hover:-translate-y-1">
+    <article
+      className="card-in group bg-white rounded-2xl shadow-suave border border-marca-100/70 overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+      style={{ animationDelay: (index % 8) * 0.05 + 's' }}
+    >
       {/* Imagen / portada */}
       <button
         type="button"
@@ -129,7 +132,7 @@ export default function ProductCard({ product, onOpen }) {
             <button
               onClick={agregar}
               disabled={agotado}
-              className={`flex-1 rounded-lg py-2 text-sm font-bold transition-all ${
+              className={`flex-1 rounded-lg py-2 text-sm font-bold transition-all active:scale-95 ${
                 agotado
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                   : added

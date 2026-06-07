@@ -10,9 +10,9 @@ export default function ProductGrid({ title, icon, products, onOpen, layout = 'g
       <section className="mb-8">
         {title && <SectionTitle icon={icon}>{title}</SectionTitle>}
         <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
-          {products.map((p) => (
+          {products.map((p, i) => (
             <div key={p.id} className="w-44 sm:w-56 flex-shrink-0">
-              <ProductCard product={p} onOpen={onOpen} />
+              <ProductCard product={p} onOpen={onOpen} index={i} />
             </div>
           ))}
         </div>
@@ -24,8 +24,8 @@ export default function ProductGrid({ title, icon, products, onOpen, layout = 'g
     <section className="mb-8">
       {title && <SectionTitle icon={icon}>{title}</SectionTitle>}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {products.map((p) => (
-          <ProductCard key={p.id} product={p} onOpen={onOpen} />
+        {products.map((p, i) => (
+          <ProductCard key={p.id} product={p} onOpen={onOpen} index={i} />
         ))}
       </div>
     </section>
