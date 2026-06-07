@@ -118,7 +118,7 @@ function Catalogo() {
         )}
 
         {!loading && !error && (
-          <div className="aparecer">
+          <div>
             {vistaPrincipal && (
               <>
                 <ProductGrid title="Más vendidos" icon="★" products={masVendidos} layout="row" onOpen={setSelected} />
