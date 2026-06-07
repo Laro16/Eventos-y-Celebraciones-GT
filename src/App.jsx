@@ -80,20 +80,8 @@ function Catalogo() {
       <WelcomeModal />
       <Header categories={categories} category={category} onSelectCategory={handleCategory} />
 
-      {/* Hero compacto */}
-      <div className="max-w-6xl w-full mx-auto px-3 sm:px-5 pt-4">
-        <div className="rounded-2xl bg-gradient-to-r from-marca-500 to-marca-700 text-white px-5 py-4 shadow-suave">
-          <h1 className="font-display text-lg sm:text-2xl font-700 leading-tight">
-            Hacemos memorables tus celebraciones ✨
-          </h1>
-          <p className="text-marca-100 text-xs sm:text-sm mt-0.5">
-            Invitaciones, decoración y todo para tu fiesta. Pide fácil por WhatsApp.
-          </p>
-        </div>
-      </div>
-
-      <main className="max-w-6xl w-full mx-auto px-3 sm:px-5 py-6 flex-1">
-        <div className="mb-6">
+      <main className="max-w-6xl w-full mx-auto px-3 sm:px-5 py-4 sm:py-6 flex-1">
+        <div className="mb-4 sm:mb-6 pt-2">
           <Filters
             query={query}
             onQueryChange={setQuery}
@@ -104,7 +92,7 @@ function Catalogo() {
         </div>
 
         {loading && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
               <ProductSkeleton key={i} />
             ))}
