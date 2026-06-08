@@ -9,6 +9,7 @@ import CartDrawer from './components/CartDrawer'
 import Footer from './components/Footer'
 import FloatingBackground from './components/FloatingBackground'
 import ProductSkeleton from './components/ProductSkeleton'
+import BottomBar from './components/BottomBar'
 import AdminApp from './components/admin/AdminApp'
 import WelcomeModal from './components/WelcomeModal'
 import { WHATSAPP } from './lib/config'
@@ -75,7 +76,7 @@ function Catalogo() {
   )
 
   return (
-    <div className="min-h-screen fondo-festivo flex flex-col">
+    <div className="min-h-screen fondo-festivo flex flex-col pb-20 sm:pb-0">
       <FloatingBackground />
       <WelcomeModal />
       <Header categories={categories} category={category} onSelectCategory={handleCategory} />
@@ -132,13 +133,14 @@ function Catalogo() {
       <Footer />
       <CartDrawer />
       <ProductModal product={selected} onClose={() => setSelected(null)} />
+      <BottomBar />
 
-      {/* Botón flotante de WhatsApp */}
+      {/* Botón flotante de WhatsApp (solo escritorio; en celular está en la barra inferior) */}
       <a
         href={'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent('Hola, tengo una consulta sobre sus servicios para eventos.')}
         target="_blank"
         rel="noreferrer"
-        className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-green-500 hover:bg-green-600 text-white px-4 py-3 shadow-xl hover:scale-105 transition-transform"
+        className="hidden sm:inline-flex fixed bottom-5 right-5 z-40 items-center gap-2 rounded-full bg-green-500 hover:bg-green-600 text-white px-4 py-3 shadow-xl hover:scale-105 transition-transform"
         aria-label="WhatsApp"
       >
         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 0C5.385 0 0 5.384 0 12.031c0 2.128.552 4.195 1.6 6.015L.231 24l6.096-1.599a11.957 11.957 0 005.704 1.442h.005c6.645 0 12.028-5.385 12.028-12.032C24.064 5.387 18.679 0 12.031 0zm0 21.849h-.003c-1.802 0-3.568-.484-5.116-1.401l-.367-.217-3.803.997.997-3.71-.238-.379A10.016 10.016 0 012.006 12.03c0-5.529 4.5-10.026 10.027-10.026 5.527 0 10.025 4.5 10.025 10.027 0 5.53-4.5 10.018-10.027 10.018z" /></svg>
