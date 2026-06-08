@@ -40,7 +40,7 @@ export default function Header({ categories, category, onSelectCategory }) {
           {/* Carrito */}
           <button
             onClick={open}
-            className="relative inline-flex items-center gap-2 rounded-full bg-marca-500 hover:bg-marca-600 active:scale-95 text-white px-3.5 py-1.5 text-sm font-semibold shadow-suave transition-all"
+            className="relative hidden sm:inline-flex items-center gap-2 rounded-full bg-marca-500 hover:bg-marca-600 active:scale-95 text-white px-3.5 py-1.5 text-sm font-semibold shadow-suave transition-all"
           >
             <svg className="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293A1 1 0 005.414 17H17M17 17a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
