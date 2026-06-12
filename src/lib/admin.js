@@ -1,4 +1,5 @@
 import { supabase, BUCKET } from './supabase'
+import { comprimirSiEsImagen } from './imagen'
 
 // --- Productos -------------------------------------------------------------
 
@@ -42,10 +43,15 @@ function tipoDeArchivo(file) {
 }
 
 // Sube un archivo al bucket y crea su fila en product_media.
+// Las imágenes se comprimen/redimensionan automáticamente antes de subir.
 export async function uploadMedia(productId, file, position = 0) {
   const type = tipoDeArchivo(file)
   if (!type) {
     throw new Error('Tipo de archivo no soportado. Usa imagen, gif, video o PDF.')
+  }
+
+  if (type === 'image') {
+    file = await comprimirSiEsImagen(file)
   }
 
   // Nombre seguro y único dentro de una carpeta por producto.
