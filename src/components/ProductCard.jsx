@@ -23,7 +23,7 @@ export default function ProductCard({ product, onOpen, index = 0 }) {
 
   return (
     <article
-      className="card-in group bg-white rounded-2xl shadow-suave border border-marca-100/70 overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+      className="card-in group bg-white rounded-xl shadow-suave border border-marca-100/70 overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
       style={{ animationDelay: (index % 8) * 0.05 + 's' }}
     >
       {/* Imagen / portada */}
@@ -46,12 +46,12 @@ export default function ProductCard({ product, onOpen, index = 0 }) {
         )}
 
         {/* Categoría */}
-        <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-marca-600 shadow-sm">
+        <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-marca-600 shadow-sm">
           {p.category}
         </span>
 
         {/* Etiquetas superiores derecha */}
-        <div className="absolute right-2 top-2 flex flex-col items-end gap-1">
+        <div className="absolute right-1.5 top-1.5 flex flex-col items-end gap-1">
           {p.hasDiscount && <Badge tipo="descuento">-{p.discountPercent}%</Badge>}
           {p.isNew && <Badge tipo="nuevo">✨ Nuevo</Badge>}
           {p.isBestseller && <Badge tipo="top">★ Top</Badge>}
@@ -59,12 +59,12 @@ export default function ProductCard({ product, onOpen, index = 0 }) {
 
         {/* Indicadores de media */}
         {(tieneVideo || tienePdf) && (
-          <div className="absolute left-2 bottom-2 flex gap-1">
+          <div className="absolute left-1.5 bottom-1.5 flex gap-1">
             {tieneVideo && (
-              <span className="rounded-md bg-black/60 text-white text-[10px] px-1.5 py-0.5 backdrop-blur-sm">▶ Video</span>
+              <span className="rounded bg-black/60 text-white text-[9px] px-1 py-0.5 backdrop-blur-sm">▶</span>
             )}
             {tienePdf && (
-              <span className="rounded-md bg-black/60 text-white text-[10px] px-1.5 py-0.5 backdrop-blur-sm">📄 PDF</span>
+              <span className="rounded bg-black/60 text-white text-[9px] px-1 py-0.5 backdrop-blur-sm">📄</span>
             )}
           </div>
         )}
@@ -77,39 +77,49 @@ export default function ProductCard({ product, onOpen, index = 0 }) {
       </button>
 
       {/* Contenido */}
-      <div className="p-3 flex flex-col flex-1">
-        <h3 className="font-display font-600 text-gray-800 leading-tight line-clamp-2">
+      <div className="p-2.5 flex flex-col flex-1">
+        <h3 className="font-display font-600 text-sm text-gray-800 leading-tight line-clamp-2">
           {p.name}
         </h3>
-        {p.description && (
-          <p className="text-xs text-gray-500 mt-1 line-clamp-2">{p.description}</p>
-        )}
 
-        <div className="mt-auto pt-3">
-          {/* Precio */}
-          <div className="mb-2.5">
+        <div className="mt-auto pt-2">
+          {/* Precio + WhatsApp discreto */}
+          <div className="flex items-center justify-between mb-2">
             {p.hasDiscount ? (
-              <div className="flex items-baseline gap-2">
-                <span className="text-lg font-extrabold text-marca-600">
+              <div className="flex items-baseline gap-1.5 min-w-0">
+                <span className="text-[15px] font-extrabold text-marca-600">
                   {formatMoney(p.finalPrice)}
                 </span>
-                <span className="text-sm text-gray-400 line-through">
+                <span className="text-[11px] text-gray-400 line-through">
                   {formatMoney(p.price)}
                 </span>
               </div>
             ) : (
-              <span className="text-lg font-extrabold text-gray-900">
+              <span className="text-[15px] font-extrabold text-gray-900">
                 {formatMoney(p.price)}
               </span>
             )}
+
+            {/* Botón WhatsApp: solo ícono, discreto */}
+            <a
+              href={linkWhatsAppProducto(p)}
+              target="_blank"
+              rel="noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="flex-shrink-0 w-7 h-7 rounded-full bg-green-500 hover:bg-green-600 active:scale-95 text-white flex items-center justify-center transition-all"
+              aria-label="Pedir info por WhatsApp"
+              title="Pedir info por WhatsApp"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 0C5.385 0 0 5.384 0 12.031c0 2.128.552 4.195 1.6 6.015L.231 24l6.096-1.599a11.957 11.957 0 005.704 1.442h.005c6.645 0 12.028-5.385 12.028-12.032C24.064 5.387 18.679 0 12.031 0z" /></svg>
+            </a>
           </div>
 
           {/* Cantidad + agregar */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center border border-marca-100 rounded-lg overflow-hidden">
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center border border-marca-100 rounded-md overflow-hidden">
               <button
                 onClick={() => setQty((q) => Math.max(1, q - 1))}
-                className="w-8 h-8 text-gray-500 hover:bg-marca-50 transition-colors"
+                className="w-6 h-7 text-gray-500 hover:bg-marca-50 transition-colors text-sm"
                 aria-label="Restar"
               >
                 −
@@ -119,11 +129,11 @@ export default function ProductCard({ product, onOpen, index = 0 }) {
                 inputMode="numeric"
                 value={qty}
                 onChange={(e) => setQty(Math.max(1, Number(e.target.value) || 1))}
-                className="w-8 text-center text-sm font-semibold outline-none"
+                className="w-6 text-center text-xs font-semibold outline-none"
               />
               <button
                 onClick={() => setQty((q) => q + 1)}
-                className="w-8 h-8 text-gray-500 hover:bg-marca-50 transition-colors"
+                className="w-6 h-7 text-gray-500 hover:bg-marca-50 transition-colors text-sm"
                 aria-label="Sumar"
               >
                 +
@@ -133,7 +143,7 @@ export default function ProductCard({ product, onOpen, index = 0 }) {
             <button
               onClick={agregar}
               disabled={agotado}
-              className={`flex-1 rounded-lg py-2 text-sm font-bold transition-all active:scale-95 ${
+              className={`flex-1 rounded-md py-1.5 text-xs font-bold transition-all active:scale-95 ${
                 agotado
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                   : added
@@ -144,16 +154,6 @@ export default function ProductCard({ product, onOpen, index = 0 }) {
               {agotado ? 'Agotado' : added ? '✓ Agregado' : 'Agregar'}
             </button>
           </div>
-
-          <a
-            href={linkWhatsAppProducto(p)}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-2 flex items-center justify-center gap-1.5 rounded-lg bg-green-500 hover:bg-green-600 active:scale-95 text-white py-2 text-sm font-bold transition-all"
-          >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 0C5.385 0 0 5.384 0 12.031c0 2.128.552 4.195 1.6 6.015L.231 24l6.096-1.599a11.957 11.957 0 005.704 1.442h.005c6.645 0 12.028-5.385 12.028-12.032C24.064 5.387 18.679 0 12.031 0z" /></svg>
-            Info por WhatsApp
-          </a>
         </div>
       </div>
     </article>

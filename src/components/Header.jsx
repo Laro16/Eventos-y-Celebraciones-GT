@@ -14,7 +14,7 @@ export default function Header({ categories, category, onSelectCategory }) {
 
   return (
     <header
-      className={`sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-marca-100 transition-shadow duration-300 ${
+      className={`sticky top-0 z-40 bg-white/60 backdrop-blur-lg border-b border-marca-100/60 transition-shadow duration-300 ${
         scrolled ? 'shadow-md' : ''
       }`}
     >
@@ -28,8 +28,8 @@ export default function Header({ categories, category, onSelectCategory }) {
               className={`rounded-full object-contain bg-white ring-2 ring-marca-100 flex-shrink-0 transition-all duration-300 ${scrolled ? 'h-8 w-8' : 'h-9 w-9'}`}
             />
             <div className="leading-tight min-w-0">
-              <div className="font-display text-sm sm:text-base font-700 text-marca-700 truncate">
-                Eventos y Celebraciones <span className="text-marca-500">GT</span>
+              <div className="font-display italic font-bold text-base sm:text-lg tracking-tight truncate bg-gradient-to-r from-marca-700 via-marca-500 to-marca-400 bg-clip-text text-transparent">
+                Eventos y Celebraciones GT
               </div>
               <div className="hidden sm:block text-[10px] text-gray-400 tracking-wide">
                 Todo para tu celebración
