@@ -1,0 +1,17 @@
+{
+  "name": "Eventos y Celebraciones GT",
+  "short_name": "Eventos GT",
+  "description": "Invitaciones digitales, decoración y todo para tu celebración.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fffaf6",
+  "theme_color": "#f43f8e",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
