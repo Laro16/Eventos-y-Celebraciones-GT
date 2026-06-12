@@ -47,7 +47,7 @@ export default function Header({ categories, category, onSelectCategory }) {
             </svg>
             <span className="hidden sm:inline">Carrito</span>
             {count > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-white text-marca-600 text-[11px] font-bold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center shadow">
+              <span key={count} className="pop absolute -top-1.5 -right-1.5 bg-white text-marca-600 text-[11px] font-bold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center shadow">
                 {count}
               </span>
             )}
