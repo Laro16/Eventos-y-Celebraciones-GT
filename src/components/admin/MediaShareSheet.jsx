@@ -26,7 +26,7 @@ export default function MediaShareSheet({ product, onClose }) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-marca-100">
-          <h3 className="font-display font-700 text-marca-700 truncate">{product.name}</h3>
+          <h3 className="font-display font-bold text-marca-700 truncate">{product.name}</h3>
           <button onClick={onClose} className="w-8 h-8 rounded-full hover:bg-marca-50 text-gray-500" aria-label="Cerrar">✕</button>
         </div>
 

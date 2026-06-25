@@ -120,7 +120,7 @@ export default function ProductForm({ product, categories = [], onClose, onSaved
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-marca-100 sticky top-0 bg-white">
         <button onClick={onClose} className="text-gray-500 hover:text-gray-800 text-sm">Cancelar</button>
-        <h2 className="font-display font-700 text-marca-700">
+        <h2 className="font-display font-bold text-marca-700">
           {editando ? 'Editar producto' : 'Nuevo producto'}
         </h2>
         <button

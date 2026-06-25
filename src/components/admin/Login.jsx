@@ -33,7 +33,7 @@ export default function Login() {
       <div className="bg-white rounded-2xl shadow-suave border border-marca-100 p-8 w-full max-w-sm">
         <div className="text-center mb-6">
           <img src="/logo.png" alt="Logo" className="h-14 w-14 mx-auto rounded-full ring-2 ring-marca-100 object-contain" />
-          <h1 className="font-display text-xl font-700 text-marca-700 mt-3">Panel de administración</h1>
+          <h1 className="font-display text-xl font-bold text-marca-700 mt-3">Panel de administración</h1>
           <p className="text-xs text-gray-500">Eventos y Celebraciones GT</p>
         </div>
 

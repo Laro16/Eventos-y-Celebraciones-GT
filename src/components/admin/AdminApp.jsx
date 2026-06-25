@@ -52,7 +52,7 @@ function Dashboard({ user, signOut }) {
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2 min-w-0">
             <img src="/logo.png" alt="Logo" className="h-9 w-9 rounded-full ring-2 ring-marca-100 object-contain flex-shrink-0" />
-            <span className="font-display font-700 text-marca-700 truncate">Panel · Eventos GT</span>
+            <span className="font-display font-bold text-marca-700 truncate">Panel · Eventos GT</span>
           </div>
           <div className="flex items-center gap-2">
             <a href="/" className="text-xs text-gray-500 hover:text-marca-500">Ver sitio</a>
@@ -63,7 +63,7 @@ function Dashboard({ user, signOut }) {
 
       <main className="max-w-3xl mx-auto px-4 py-5">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="font-display text-xl font-700 text-gray-800">
+          <h1 className="font-display text-xl font-bold text-gray-800">
             Productos {!loading && <span className="text-gray-400 text-base">({products.length})</span>}
           </h1>
         </div>
