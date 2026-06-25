@@ -78,7 +78,7 @@ export default function ProductCard({ product, onOpen, index = 0 }) {
 
       {/* Contenido */}
       <div className="p-2.5 flex flex-col flex-1">
-        <h3 className="font-display font-600 text-sm text-gray-800 leading-tight line-clamp-2">
+        <h3 className="font-display font-semibold text-sm text-gray-800 leading-tight line-clamp-2">
           {p.name}
         </h3>
 

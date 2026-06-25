@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useCart } from '../context/CartContext'
 import { formatMoney } from '../lib/format'
 import { WHATSAPP, BUSINESS_NAME } from '../lib/config'
+import { lanzarConfetti } from '../lib/confetti'
 import MediaPlaceholder from './MediaPlaceholder'
 
 const CLIENTE_VACIO = { nombre: '', telefono: '', fecha: '', direccion: '', notas: '' }
@@ -39,6 +40,9 @@ export default function CartDrawer() {
     if (cliente.notas.trim()) L.push('', `📝 *Notas:* ${cliente.notas.trim()}`)
 
     window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(L.join('\n'))}`, '_blank')
+
+    // Confeti SOLO en este momento importante: el cliente envió su pedido.
+    lanzarConfetti()
   }
 
   return (
@@ -56,7 +60,7 @@ export default function CartDrawer() {
         }`}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-marca-100">
-          <h3 className="font-display text-lg font-700 text-marca-700">
+          <h3 className="font-display text-lg font-bold text-marca-700">
             Tu carrito {count > 0 && <span className="text-gray-400 text-sm">({count})</span>}
           </h3>
           <div className="flex items-center gap-2">

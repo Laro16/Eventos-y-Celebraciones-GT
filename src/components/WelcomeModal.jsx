@@ -31,7 +31,7 @@ export default function WelcomeModal() {
           alt="Logo"
           className="h-16 w-16 mx-auto rounded-full ring-2 ring-marca-100 object-contain"
         />
-        <h2 className="font-display text-2xl font-700 text-marca-700 mt-3">
+        <h2 className="font-display text-2xl font-bold text-marca-700 mt-3">
           ¡Bienvenido/a! 🎉
         </h2>
         <p className="text-sm text-gray-600 mt-2">

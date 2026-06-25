@@ -12,7 +12,7 @@ export default function Footer() {
               alt={BUSINESS_NAME}
               className="h-14 w-14 mx-auto rounded-full ring-2 ring-marca-100 object-contain"
             />
-            <p className="font-display text-lg font-700 text-marca-700 mt-2">{BUSINESS_NAME}</p>
+            <p className="font-display text-lg font-bold text-marca-700 mt-2">{BUSINESS_NAME}</p>
             <p className="text-sm text-gray-500 max-w-sm mx-auto">
               Invitaciones digitales, decoración y todo para que tu celebración sea inolvidable.
             </p>

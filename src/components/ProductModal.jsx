@@ -29,6 +29,7 @@ export default function ProductModal({ product, onClose }) {
   // Teclado + bloquear scroll del fondo + botón atrás
   useEffect(() => {
     if (!product) return
+    let cerradoPorAtras = false
     function onKey(e) {
       if (e.key === 'Escape') onClose()
       if (e.key === 'ArrowRight') next()
@@ -38,13 +39,16 @@ export default function ProductModal({ product, onClose }) {
     document.body.style.overflow = 'hidden'
 
     window.history.pushState({ modal: true }, '')
-    const onPop = () => onClose()
+    const onPop = () => { cerradoPorAtras = true; onClose() }
     window.addEventListener('popstate', onPop)
 
     return () => {
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('popstate', onPop)
       document.body.style.overflow = ''
+      // Si se cerró con la ✕ / fondo / Escape, consumimos la entrada que agregamos
+      // para que el botón "atrás" del teléfono no quede "trabado" una vez.
+      if (!cerradoPorAtras) window.history.back()
     }
   }, [product, next, prev, onClose])
 
@@ -124,7 +128,7 @@ export default function ProductModal({ product, onClose }) {
             <button onClick={cerrar} className="text-gray-400 hover:text-gray-700 -mt-1" aria-label="Cerrar">✕</button>
           </div>
 
-          <h2 className="font-display text-2xl font-700 text-gray-800 mt-1 leading-tight">
+          <h2 className="font-display text-2xl font-bold text-gray-800 mt-1 leading-tight">
             {product.name}
           </h2>
 
