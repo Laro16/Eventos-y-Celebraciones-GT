@@ -1,39 +1,12 @@
-import { WHATSAPP, BUSINESS_NAME } from '../lib/config'
+import { BUSINESS_NAME } from '../lib/config'
 
 export default function Footer() {
   return (
-    <footer className="mt-12 border-t border-marca-100 bg-white/60">
-      <div className="max-w-6xl mx-auto px-5 py-10">
+    <footer className="mt-10 border-t border-marca-100 bg-white/60">
+      <div className="max-w-6xl mx-auto px-5 py-6">
         <div className="flex flex-col items-center text-center gap-4">
-          {/* Marca */}
-          <div>
-            <img
-              src="/logo.png"
-              alt={BUSINESS_NAME}
-              className="h-14 w-14 mx-auto rounded-full ring-2 ring-marca-100 object-contain"
-            />
-            <p className="font-display text-lg font-bold text-marca-700 mt-2">{BUSINESS_NAME}</p>
-            <p className="text-sm text-gray-500 max-w-sm mx-auto">
-              Invitaciones digitales, decoración y todo para que tu celebración sea inolvidable.
-            </p>
-          </div>
-
-          {/* Contacto por WhatsApp */}
-          <a
-            href={'https://wa.me/' + WHATSAPP}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-full bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 text-sm font-bold shadow-md transition-colors"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 0C5.385 0 0 5.384 0 12.031c0 2.128.552 4.195 1.6 6.015L.231 24l6.096-1.599a11.957 11.957 0 005.704 1.442h.005c6.645 0 12.028-5.385 12.028-12.032C24.064 5.387 18.679 0 12.031 0z" /></svg>
-            Escríbenos por WhatsApp
-          </a>
-
-          {/* Ubicación (edítala con tu zona/horario) */}
-          <p className="text-xs text-gray-400">📍 Guatemala · Pedidos y entregas por WhatsApp</p>
-
           {/* Redes */}
-          <div className="flex justify-center gap-5 pt-2">
+          <div className="flex justify-center gap-5">
             <a href="https://www.facebook.com/profile.php?id=61577446754797" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-marca-500 transition-colors" aria-label="Facebook">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
             </a>
@@ -45,7 +18,7 @@ export default function Footer() {
             </a>
           </div>
 
-          <p className="text-xs text-gray-400 pt-2 border-t border-marca-100 w-full">
+          <p className="text-xs text-gray-400">
             © {new Date().getFullYear()} {BUSINESS_NAME} — Hecho con cariño en Guatemala
           </p>
         </div>

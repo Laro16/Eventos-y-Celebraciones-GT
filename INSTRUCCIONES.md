@@ -118,3 +118,32 @@ Borré dos archivos muertos que solo causaban confusión:
 3. Vercel desplegará solo. Verás los títulos con serif, negritas y sombras.
 
 > Lo más simple: sube el contenido de este ZIP tal cual (sin `node_modules`).
+
+---
+
+## Cambios de esta ronda (interfaz)
+
+1. **Footer simplificado.** Quité el bloque de marca redundante (logo, nombre,
+   eslogan y el 4.º botón de WhatsApp). El footer quedó minimal: solo redes
+   sociales + copyright. (`src/components/Footer.jsx`)
+
+2. **Logo de WhatsApp oficial en todo el sitio.** El ícono anterior era una
+   burbuja de chat genérica (sin el teléfono). Creé un componente reutilizable
+   `src/components/WhatsAppIcon.jsx` con el logo oficial y lo usé en el botón
+   flotante "Contáctanos", las tarjetas, la barra inferior, el carrito y el
+   modal. El botón flotante además quedó más fino y con el verde de marca de
+   WhatsApp (#25D366).
+
+3. **Vista más compacta / minimalista (sin pedir zoom al usuario).** En vez de
+   un `zoom` o `transform` global —que rompen el header sticky, la barra inferior
+   fija y los modales— densifiqué el layout:
+   - Grilla: de 4 a **5 columnas** en pantallas grandes, con menos separación.
+   - Títulos de sección, padding general y tarjetas más compactos.
+   - Figuras del fondo más pequeñas y sutiles.
+   Esto hace que se vea más al estilo de tu zoom 70–85%, pero sin encoger el
+   texto a un tamaño ilegible. Si lo quieres aún más compacto, dímelo y lo bajo
+   otro escalón (más columnas o una escala global controlada).
+
+   Archivos tocados: `src/App.jsx`, `src/components/ProductGrid.jsx`,
+   `src/components/ProductCard.jsx`, `src/components/FloatingBackground.jsx`,
+   `src/index.css`. Nuevo: `src/components/WhatsAppIcon.jsx`.

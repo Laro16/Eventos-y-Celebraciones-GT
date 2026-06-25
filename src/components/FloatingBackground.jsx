@@ -4,13 +4,13 @@ const FIGURAS = ['🎈', '🎉', '🎁', '🎂', '🍭', '✨', '🎊', '🧁', 
 
 // Capa decorativa de fondo: figuras de fiesta que suben lentamente.
 // Va detrás del contenido (-z-10) y no captura toques (pointer-events-none).
-export default function FloatingBackground({ cantidad = 14 }) {
+export default function FloatingBackground({ cantidad = 12 }) {
   const items = useMemo(
     () =>
       Array.from({ length: cantidad }, () => ({
         emoji: FIGURAS[(Math.random() * FIGURAS.length) | 0],
         left: Math.random() * 100,
-        size: 18 + Math.random() * 24,
+        size: 14 + Math.random() * 16,
         dur: 12 + Math.random() * 16,
         delay: Math.random() * 14,
       })),

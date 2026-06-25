@@ -7,11 +7,11 @@ export default function ProductGrid({ title, icon, products, onOpen, layout = 'g
 
   if (layout === 'row') {
     return (
-      <section className="mb-6 sm:mb-8">
+      <section className="mb-5 sm:mb-6">
         {title && <SectionTitle icon={icon}>{title}</SectionTitle>}
-        <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-1 px-1">
           {products.map((p, i) => (
-            <div key={p.id} className="w-44 sm:w-56 flex-shrink-0">
+            <div key={p.id} className="w-36 sm:w-44 flex-shrink-0">
               <ProductCard product={p} onOpen={onOpen} index={i} />
             </div>
           ))}
@@ -21,9 +21,9 @@ export default function ProductGrid({ title, icon, products, onOpen, layout = 'g
   }
 
   return (
-    <section className="mb-6 sm:mb-8">
+    <section className="mb-5 sm:mb-6">
       {title && <SectionTitle icon={icon}>{title}</SectionTitle>}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
         {products.map((p, i) => (
           <ProductCard key={p.id} product={p} onOpen={onOpen} index={i} />
         ))}
@@ -34,8 +34,8 @@ export default function ProductGrid({ title, icon, products, onOpen, layout = 'g
 
 function SectionTitle({ icon, children }) {
   return (
-    <div className="flex items-center gap-3 mb-4">
-      <h2 className="font-display text-lg sm:text-2xl font-bold text-marca-700 flex items-center gap-2 whitespace-nowrap">
+    <div className="flex items-center gap-3 mb-3">
+      <h2 className="font-display text-base sm:text-xl font-bold text-marca-700 flex items-center gap-2 whitespace-nowrap">
         {icon && <span>{icon}</span>}
         {children}
       </h2>

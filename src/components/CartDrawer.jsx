@@ -4,6 +4,7 @@ import { formatMoney } from '../lib/format'
 import { WHATSAPP, BUSINESS_NAME } from '../lib/config'
 import { lanzarConfetti } from '../lib/confetti'
 import MediaPlaceholder from './MediaPlaceholder'
+import WhatsAppIcon from './WhatsAppIcon'
 
 const CLIENTE_VACIO = { nombre: '', telefono: '', fecha: '', direccion: '', notas: '' }
 
@@ -163,7 +164,7 @@ export default function CartDrawer() {
               onClick={enviarWhatsApp}
               className="w-full rounded-lg bg-green-500 hover:bg-green-600 text-white py-3 font-bold text-sm shadow-md transition-colors flex items-center justify-center gap-2"
             >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 0C5.385 0 0 5.384 0 12.031c0 2.128.552 4.195 1.6 6.015L.231 24l6.096-1.599a11.957 11.957 0 005.704 1.442h.005c6.645 0 12.028-5.385 12.028-12.032C24.064 5.387 18.679 0 12.031 0z" /></svg>
+              <WhatsAppIcon className="w-5 h-5" />
               Ordenar por WhatsApp
             </button>
           </div>

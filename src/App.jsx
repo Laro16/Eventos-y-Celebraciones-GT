@@ -12,6 +12,7 @@ import ProductSkeleton from './components/ProductSkeleton'
 import BottomBar from './components/BottomBar'
 import AdminApp from './components/admin/AdminApp'
 import WelcomeModal from './components/WelcomeModal'
+import WhatsAppIcon from './components/WhatsAppIcon'
 import { WHATSAPP } from './lib/config'
 
 export default function App({ admin = false }) {
@@ -74,8 +75,8 @@ function Catalogo() {
       <WelcomeModal />
       <Header categories={categories} category={category} onSelectCategory={handleCategory} />
 
-      <main className="max-w-6xl w-full mx-auto px-3 sm:px-5 py-4 sm:py-6 flex-1">
-        <div className="mb-4 sm:mb-6 pt-2">
+      <main className="max-w-6xl w-full mx-auto px-3 sm:px-5 py-3 sm:py-5 flex-1">
+        <div className="mb-3 sm:mb-4 pt-1">
           <Filters
             query={query}
             onQueryChange={setQuery}
@@ -86,8 +87,8 @@ function Catalogo() {
         </div>
 
         {loading && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-3">
+            {Array.from({ length: 10 }).map((_, i) => (
               <ProductSkeleton key={i} />
             ))}
           </div>
@@ -133,11 +134,11 @@ function Catalogo() {
         href={'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent('Hola, tengo una consulta sobre sus servicios para eventos.')}
         target="_blank"
         rel="noreferrer"
-        className="hidden sm:inline-flex fixed bottom-5 right-5 z-40 items-center gap-2 rounded-full bg-green-500 hover:bg-green-600 text-white px-4 py-3 shadow-xl hover:scale-105 transition-transform"
-        aria-label="WhatsApp"
+        className="hidden sm:inline-flex fixed bottom-5 right-5 z-40 items-center gap-2 rounded-full bg-[#25D366] hover:bg-[#1ebe5b] text-white pl-3 pr-4 py-2.5 shadow-lg shadow-green-600/20 ring-1 ring-black/5 hover:scale-105 transition-transform"
+        aria-label="Contáctanos por WhatsApp"
       >
-        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 0C5.385 0 0 5.384 0 12.031c0 2.128.552 4.195 1.6 6.015L.231 24l6.096-1.599a11.957 11.957 0 005.704 1.442h.005c6.645 0 12.028-5.385 12.028-12.032C24.064 5.387 18.679 0 12.031 0zm0 21.849h-.003c-1.802 0-3.568-.484-5.116-1.401l-.367-.217-3.803.997.997-3.71-.238-.379A10.016 10.016 0 012.006 12.03c0-5.529 4.5-10.026 10.027-10.026 5.527 0 10.025 4.5 10.025 10.027 0 5.53-4.5 10.018-10.027 10.018z" /></svg>
-        <span className="hidden sm:inline font-bold text-sm">Contáctanos</span>
+        <WhatsAppIcon className="w-5 h-5" />
+        <span className="font-semibold text-sm">Contáctanos</span>
       </a>
     </div>
   )

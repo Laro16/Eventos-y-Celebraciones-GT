@@ -38,8 +38,8 @@ body {
 /* Figuras de fiesta flotando hacia arriba */
 @keyframes flotar {
   0%   { transform: translateY(0) rotate(0deg); opacity: 0; }
-  12%  { opacity: 0.45; }
-  88%  { opacity: 0.45; }
+  12%  { opacity: 0.3; }
+  88%  { opacity: 0.3; }
   100% { transform: translateY(-115vh) rotate(35deg); opacity: 0; }
 }
 
