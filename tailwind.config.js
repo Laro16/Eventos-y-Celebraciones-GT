@@ -24,6 +24,15 @@ export default {
       },
       fontFamily: {
         sans: ['Poppins', 'system-ui', 'sans-serif'],
+        // ANTES faltaba esta familia: por eso todas las clases `font-display`
+        // (títulos, nombres de producto, etc.) caían en Poppins y NUNCA se veía
+        // la tipografía elegante Fraunces, aunque sí se descargaba.
+        display: ['Fraunces', 'Georgia', 'serif'],
+      },
+      // ANTES no existía: `shadow-suave` se usaba en ~10 lugares (tarjetas, botones,
+      // header) y no aplicaba ninguna sombra. La definimos con una sombra suave real.
+      boxShadow: {
+        suave: '0 4px 14px -2px rgba(244, 63, 142, 0.12), 0 2px 6px -2px rgba(0, 0, 0, 0.05)',
       },
     },
   },
