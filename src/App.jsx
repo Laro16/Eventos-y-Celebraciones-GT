@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { useCatalog } from './hooks/useCatalog'
 import { CartProvider } from './context/CartContext'
 import Header from './components/Header'
@@ -13,7 +13,6 @@ import BottomBar from './components/BottomBar'
 import AdminApp from './components/admin/AdminApp'
 import WelcomeModal from './components/WelcomeModal'
 import { WHATSAPP } from './lib/config'
-import { lanzarConfetti } from './lib/confetti'
 
 export default function App({ admin = false }) {
   if (admin) {
@@ -35,14 +34,8 @@ function Catalogo() {
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState(null)
 
-  // Confeti pequeño en cada toque del catálogo público.
-  useEffect(() => {
-    function onTap(e) {
-      lanzarConfetti({ x: e.clientX, y: e.clientY, count: 18, duracion: 1100, power: 7 })
-    }
-    window.addEventListener('pointerdown', onTap)
-    return () => window.removeEventListener('pointerdown', onTap)
-  }, [])
+  // Cierre estable del modal (evita re-suscribir efectos del modal en cada render).
+  const cerrarModal = useCallback(() => setSelected(null), [])
 
   const subcategories = useMemo(
     () => getSubcategories(category),
@@ -132,7 +125,7 @@ function Catalogo() {
 
       <Footer />
       <CartDrawer />
-      <ProductModal product={selected} onClose={() => setSelected(null)} />
+      <ProductModal product={selected} onClose={cerrarModal} />
       <BottomBar />
 
       {/* Botón flotante de WhatsApp (solo escritorio; en celular está en la barra inferior) */}
